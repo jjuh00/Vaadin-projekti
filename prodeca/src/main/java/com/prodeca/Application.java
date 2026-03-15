@@ -3,7 +3,6 @@ package com.prodeca;
 import com.prodeca.data.SamplePersonRepository;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
 import javax.sql.DataSource;
 import org.springframework.boot.SpringApplication;
@@ -24,7 +23,6 @@ import org.springframework.context.annotation.Bean;
 @StyleSheet(Lumo.STYLESHEET)
 @StyleSheet("styles.css")
 @EnableConfigurationProperties(SqlInitializationProperties.class)
-@Theme(value = "prodeca", variant = Lumo.DARK)
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {
