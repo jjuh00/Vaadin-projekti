@@ -36,7 +36,7 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (authenticatedUser.get().isPresent()) {
-            // Already logged in
+            // Käyttäjä on jo kirjautunut, ohjataan suoraan etusivulle
             setOpened(false);
             event.forwardTo("");
         }

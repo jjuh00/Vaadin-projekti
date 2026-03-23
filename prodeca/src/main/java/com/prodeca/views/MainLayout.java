@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The main view is a top-level placeholder for other views.
+ * Top-level placeholder muille näkymille
  */
 @Layout
 @AnonymousAllowed
@@ -40,8 +40,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private H1 viewTitle;
 
-    private AuthenticatedUser authenticatedUser;
-    private AccessAnnotationChecker accessChecker;
+    private final AuthenticatedUser authenticatedUser;
+    private final AccessAnnotationChecker accessChecker;
 
     public MainLayout(AuthenticatedUser authenticatedUser, AccessAnnotationChecker accessChecker) {
         this.authenticatedUser = authenticatedUser;
