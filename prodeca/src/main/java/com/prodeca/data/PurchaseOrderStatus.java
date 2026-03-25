@@ -5,7 +5,7 @@ public enum PurchaseOrderStatus {
     LUONNOS,
     VASTAANOTETTU,
     VAHVISTETTU,
-    LÄHETETTY,
+    KULJETUKSESSA,
     TOIMITETTU,
     PERUUTETTU   
 }
