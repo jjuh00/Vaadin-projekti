@@ -2,7 +2,7 @@
 @import url('./views/product-inventory-view.css');
 @import url('./views/supplier-management-view.css');
 @import url('./views/purchase-order-view.css');
-@import url('./views/product-gallery-view.css');    html, spreadsheet-view-export, grid-with-filters-view-export {
+@import url('./views/supplier-contact-view.css');    html, spreadsheet-view-export, grid-with-filters-view-export {
       --lumo-font-size: 1rem;
       --lumo-font-size-xxxl: 1.75rem;
       --lumo-font-size-xxl: 1.375rem;

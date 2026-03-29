@@ -25,7 +25,7 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
         i18n.getHeader().setTitle("Prodeca");
-        i18n.getHeader().setDescription("Login using user/user or admin/admin");
+        i18n.getHeader().setDescription("Kirjaudu sisään käyttäen user/user tai admin/admin");
         i18n.setAdditionalInformation(null);
         setI18n(i18n);
 

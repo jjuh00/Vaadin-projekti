@@ -1,11 +1,6 @@
 package com.prodeca.data;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -14,7 +9,6 @@ import org.hibernate.validator.constraints.URL;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 /**
  * Entiteetti 1: Toimittaja (supplier)
@@ -32,6 +26,7 @@ import java.util.List;
  * - 6. Verkko-osoite (pakollinen, oikea muoto)
  * - 7. Kuvaus (merkkijonon pituus)
  */
+
 @Entity
 @Table(name = "supplier")
 public class Supplier extends AbstractEntity {
@@ -81,8 +76,8 @@ public class Supplier extends AbstractEntity {
                 fetch = FetchType.LAZY)
     private SupplierContact primaryContact;
 
-    // 1:1 suhde Product-luokan kanssa. Ei omistaja, joten käytetään mappedBy
-    @OneToOne(mappedBy = "supplier",
+    // 1:N suhde Product-luokan kanssa. Ei omistaja, joten käytetään mappedBy
+    @OneToMany(mappedBy = "supplier",
                 cascade = CascadeType.ALL,
                 orphanRemoval = true,
                 fetch = FetchType.LAZY)

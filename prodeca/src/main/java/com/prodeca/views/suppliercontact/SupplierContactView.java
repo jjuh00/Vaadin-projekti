@@ -1,22 +1,17 @@
-package com.prodeca.views.productinventory;
+package com.prodeca.views.suppliercontact;
 
-import java.util.Optional;
-
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
-
-import com.prodeca.data.Product;
 import com.prodeca.data.Supplier;
-import com.prodeca.services.ProductService;
+import com.prodeca.data.SupplierContact;
+import com.prodeca.services.SupplierContactService;
 import com.prodeca.services.SupplierService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
@@ -24,8 +19,6 @@ import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
-import com.vaadin.flow.component.textfield.BigDecimalField;
-import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
@@ -37,28 +30,30 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
-@PageTitle("Tuotevarasto")
-@Route("products/:productID?/:action?(edit)")
-@Menu(order = 3, icon = LineAwesomeIconUrl.BOX_SOLID)
+import java.util.Optional;
+
+@PageTitle("Toimittajien yhteystiedot")
+@Route("supplier-contacts/:contactID?/:action?(edit)")
+@Menu(order = 2, icon = LineAwesomeIconUrl.ADDRESS_CARD_SOLID)
 @AnonymousAllowed
 @Uses(Icon.class)
-public class ProductInventoryView extends Div implements BeforeEnterObserver {
+public class SupplierContactView extends Div implements BeforeEnterObserver {
+    
+    private static final String CONTACT_ID = "contactID";
+    private static final String EDIT_ROUTE = "supplier-contacts/%s/edit";
 
-    private static final String PRODUCT_ID = "productID";
-    private static final String EDIT_ROUTE = "products/%s/edit";
-
-    private final Grid<Product> grid = new Grid<>(Product.class, false);
-
+    private final Grid<SupplierContact> grid = new Grid<>(SupplierContact.class, false);
+ 
     // Lomakekentät
-    private TextField name;
-    private TextField sku;
-    private BigDecimalField unitPrice;
-    private IntegerField stockQuantity;
-    private TextField category;
-    private TextArea description;
-    private BigDecimalField weight;
-    private Checkbox active;
+    private TextField firstName;
+    private TextField lastName;
+    private TextField email;
+    private TextField phone;
+    private TextField jobTitle;
+    private TextArea notes;
 
     // ComboBox linkitettyjen toimittajien valintaan
     private ComboBox<Supplier> supplierComboBox;
@@ -68,16 +63,16 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
     private final Button saveBtn = new Button("Tallenna");
     private final Button deleteBtn = new Button("Poista");
 
-    private final BeanValidationBinder<Product> binder;
-    private Product currentProduct;
+    private final BeanValidationBinder<SupplierContact> binder;
+    private SupplierContact currentContact;
 
-    private final ProductService productService;
+    private final SupplierContactService contactService;
     private final SupplierService supplierService;
 
-    public ProductInventoryView(ProductService productService, SupplierService supplierService) {
-        this.productService = productService;
+    public SupplierContactView(SupplierContactService contactService, SupplierService supplierService) {
+        this.contactService = contactService;
         this.supplierService = supplierService;
-        addClassNames("product-inventory-view");
+        addClassNames("supplier-contact-view");
 
         SplitLayout splitLayout = new SplitLayout();
         splitLayout.setSizeFull();
@@ -86,62 +81,61 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Gridin sarakkeet
-        grid.addColumn(Product::getName).setHeader("Tuotteen nimi").setAutoWidth(true).setSortable(true);
-        grid.addColumn(Product::getSku).setHeader("Tuotekoodi").setAutoWidth(true);
-        grid.addColumn(Product::getCategory).setHeader("Kategoria").setAutoWidth(true).setSortable(true);
-        grid.addColumn(Product::getUnitPrice).setHeader("Yksikköhinta").setAutoWidth(true);
-        grid.addColumn(Product::getStockQuantity).setHeader("Määrä varastossa").setAutoWidth(true);
-        grid.addColumn(p -> p.getSupplier() != null ? p.getSupplier().getName() : "Ei määritettyä toimittajaa")
+        grid.addColumn(c -> c.getSupplier() != null ? c.getSupplier().getName() : "Ei määritettyä toimittajaa")
             .setHeader("Toimittaja")
             .setAutoWidth(true)
             .setSortable(true);
-        grid.addColumn(p -> p.isActive() ? "Kyllä" : "Ei").setHeader("Aktiivinen").setAutoWidth(true);
-        grid.setItems(query -> productService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
+        grid.addColumn(SupplierContact::getFullName).setHeader("Koko nimi").setAutoWidth(true);
+        grid.addColumn(SupplierContact::getJobTitle).setHeader("Titteli").setAutoWidth(true);
+        grid.addColumn(SupplierContact::getEmail).setHeader("Sähköposti").setAutoWidth(true);
+        grid.addColumn(SupplierContact::getPhone).setHeader("Puhelinnumero").setAutoWidth(true);
+        grid.setItems(query -> contactService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);  
         grid.asSingleSelect().addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                UI.getCurrent().navigate(String.format(EDIT_ROUTE, e.getValue().getId()));
+                UI.getCurrent().navigate(String.format(EDIT_ROUTE , e.getValue().getId()));
             } else {
                 clearForm();
-                UI.getCurrent().navigate(ProductInventoryView.class);
+                UI.getCurrent().navigate(SupplierContactView.class);
             }
         });
 
         // Binderin sidonta lomakekenttiin
-        binder = new BeanValidationBinder<>(Product.class);
+        binder = new BeanValidationBinder<>(SupplierContact.class);
         binder.bindInstanceFields(this);
-        // Sidotaan ComboBox manuaalisesti
-        binder.bind(supplierComboBox, Product::getSupplier, Product::setSupplier);
+        // Sidotaan CombBox manuaalisesti
+        binder.bind(supplierComboBox, SupplierContact::getSupplier, SupplierContact::setSupplier);
 
         // Nappien käsittelijät
         cancelBtn.addClickListener(e -> { clearForm(); refreshGrid(); });
 
         saveBtn.addClickListener(e -> {
             try {
-                if (currentProduct == null) currentProduct = new Product();
-                binder.writeBean(currentProduct);
-                productService.save(currentProduct);
+                if (currentContact == null) currentContact = new SupplierContact();
+                binder.writeBean(currentContact);
+                contactService.save(currentContact);
                 clearForm();
                 refreshGrid();
-                Notification.show("Tuote tallennettu onnistuneesti");
-                UI.getCurrent().navigate(ProductInventoryView.class);
+                Notification.show("Yhteystiedot tallennettu onnistuneesti");
+                UI.getCurrent().navigate(SupplierContactView.class);
             } catch (ObjectOptimisticLockingFailureException ex) {
                 Notification n = Notification.show(
-                    "Yhtäaikainen muokkausvirhe: joku muu on muokannut tätä tuotetta. Lataa tiedot uudestaan ja yritä uudestaan"
+                    "Yhtäaikainen muokkausvirhe: joku muu on muokannut tämän toimittajan tietoja. Lataa tiedot uudestaan ja yritä uudestaan"
                 );
                 n.setPosition(Position.MIDDLE);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
             } catch (ValidationException ex) {
-               Notification.show("Tarkista syötteet: " + ex.getMessage()); 
+                Notification.show("Tarkista syötteet: " + ex.getMessage());
             }
         });
 
         deleteBtn.addClickListener(e -> {
-            if (currentProduct != null && currentProduct.getId() != null) {
-                productService.delete(currentProduct.getId());
+            if (currentContact != null && currentContact.getId() != null) {
+                contactService.delete(currentContact.getId());
                 clearForm();
                 refreshGrid();
-                Notification.show("Tuote poistettu onnistuneesti");
-                UI.getCurrent().navigate(ProductInventoryView.class);
+                Notification.show("Yhteystiedot poistettu");
+                UI.getCurrent().navigate(SupplierContactView.class);
             }
         });
         deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -150,17 +144,17 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<Long> productId = event.getRouteParameters().get(PRODUCT_ID).map(Long::parseLong);
-        if (productId.isPresent()) {
-            productService.getById(productId.get()).ifPresentOrElse(
-                product -> {
-                    populateForm(product);
+        Optional<Long> contactId = event.getRouteParameters().get(CONTACT_ID).map(Long::parseLong);
+        if (contactId.isPresent()) {
+            contactService.getById(contactId.get()).ifPresentOrElse(
+                contact -> {
+                    populateForm(contact);
                     deleteBtn.setVisible(true);
                 },
                 () -> {
-                    Notification.show("Tuotetta ei löytynyt, ID: " + productId.get(), 3000, Position.BOTTOM_START);
+                    Notification.show("Yhteystietoja ei löytynyt, ID: " + contactId.get(), 3000, Notification.Position.BOTTOM_START);
                     refreshGrid();
-                    event.forwardTo(ProductInventoryView.class);
+                    event.forwardTo(SupplierContactView.class);
                 }
             );
         }
@@ -169,24 +163,23 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
     private void createEditorLayout(SplitLayout splitLayout) {
         Div editorDiv = new Div();
         editorDiv.setClassName("editor-layout");
+
         Div innerDiv = new Div();
         innerDiv.setClassName("editor");
 
         FormLayout form = new FormLayout();
-        name = new TextField("Tuotteen nimi");
-        sku = new TextField("Tuotekoodi");
-        unitPrice = new BigDecimalField("Yksikköhinta (€)");
-        stockQuantity = new IntegerField("Määrä varastossa");
-        category = new TextField("Kategoria");
-        description = new TextArea("Kuvaus");
-        weight = new BigDecimalField("Paino (kg)");
-        active = new Checkbox("Aktiivinen");
+        firstName = new TextField("Etunimi");
+        lastName = new TextField("Sukunimi");
+        email = new TextField("Sähköposti");
+        phone = new TextField("Puhelinnumero");
+        jobTitle = new TextField("Titteli");
+        notes = new TextArea("Lisätiedot");
 
         supplierComboBox = new ComboBox<>("Toimittaja");
         supplierComboBox.setItems(supplierService.getAll());
         supplierComboBox.setItemLabelGenerator(Supplier::getName);
 
-        form.add(name, sku, category, unitPrice, stockQuantity, supplierComboBox, weight, description, active);
+        form.add(supplierComboBox, firstName, lastName, email, phone, jobTitle, notes);
         innerDiv.add(form);
         editorDiv.add(innerDiv);
         createButtonLayout(editorDiv);
@@ -205,8 +198,8 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
     private void createGridLayout(SplitLayout splitLayout) {
         Div wrapper = new Div();
         wrapper.setClassName("grid-wrapper");
-        splitLayout.addToPrimary(wrapper);
         wrapper.add(grid);
+        splitLayout.addToPrimary(wrapper);
     }
 
     private void refreshGrid() {
@@ -219,8 +212,8 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
         deleteBtn.setVisible(false);
     }
 
-    private void populateForm(Product value) {
-        currentProduct = value;
-        binder.readBean(currentProduct);
+    private void populateForm(SupplierContact value) {
+        currentContact = value;
+        binder.readBean(currentContact);
     }
 }

@@ -23,6 +23,7 @@ import java.util.List;
  * - 6. Kuvaus (valinnainen, merkkijonon pituus)
  * - 7. Paino (valinnainen, ei-negatiivinen desimaaliluku)
  */
+
 @Entity
 @Table(name = "product")
 public class Product extends AbstractEntity {
@@ -70,7 +71,7 @@ public class Product extends AbstractEntity {
     // Tietokantasuhteet
     // N:1 suhde Supplier-luokan kanssa, sisältää vierasavaimen supplier_id
     @NotNull(message = "Tuotteen toimittaja on pakollinen tieto")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
 

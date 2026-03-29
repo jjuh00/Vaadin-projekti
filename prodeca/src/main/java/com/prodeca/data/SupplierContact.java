@@ -24,8 +24,9 @@ import jakarta.validation.constraints.Size;
  * - 3. Sähköposti (pakollinen, oikea muoto)
  * - 4. Puhelin (pakollinen, oikea muoto)
  * - 5. Titteli (pakollinen, merkkijonon pituus)
- * - 6. Huomautukset (valinnainen, merkkijonon pituus)
+ * - 6. Huomautukset/lisätiedot (valinnainen, merkkijonon pituus)
  */
+
 @Entity
 @Table(name = "supplier_contact")
 public class SupplierContact extends AbstractEntity {
@@ -64,7 +65,7 @@ public class SupplierContact extends AbstractEntity {
     // 1:1 suhde Supplier-luokan kanssa, sisältää vierasavaimen supplier_id.
     // Pitää olla uniikki, koska jokaisella SupplierContactilla saa olla vain yksi Supplier
     @NotNull(message = "Toimittaja on pakollinen tieto")
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "supplier_id", nullable = false, unique = true)
     private Supplier supplier;
 

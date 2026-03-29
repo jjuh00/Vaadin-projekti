@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "purchase_order_item", uniqueConstraints = @UniqueConstraint(columnNames = {"purchase_order_id", "product_id"}))
-public class PurchaseOrderItem extends  AbstractEntity {
+public class PurchaseOrderItem extends AbstractEntity {
    
     // Validoitavat kentät
     @NotNull(message = "Viittaus tilaukseen on pakollinen tieto")
@@ -31,7 +31,7 @@ public class PurchaseOrderItem extends  AbstractEntity {
     private PurchaseOrder purchaseOrder;
 
     @NotNull(message = "Viittaus tuotteeseen on pakollinen tieto")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 

@@ -21,8 +21,9 @@ import java.util.stream.Collectors;
  * - 3. Tila (pakollinen, enum PurchaseOrderStatus)
  * - 4. Kokonaishinta (pakollinen, positiivinen desimaaliluku)
  * - 5. Odotettu toimituspäivä (valinnainen, tulevaisuudessa)
- * - 6. Huomautukset (valinnainen, merkkijonon pituus)
+ * - 6. Huomautukset/lisätiedot (valinnainen, merkkijonon pituus)
  */
+
 @Entity
 @Table(name = "purchase_order")
 public class PurchaseOrder extends AbstractEntity {
@@ -59,7 +60,10 @@ public class PurchaseOrder extends AbstractEntity {
 
     // Tietokantasuhteet
     // 1:N suhde tilausrivin (PurchaseOrderItem) kanssa. Tämä on omistava puoli M:N suhteesta
-    @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "purchaseOrder", 
+                cascade = CascadeType.ALL,
+                fetch = FetchType.EAGER,
+                orphanRemoval = true)
     private List<PurchaseOrderItem> orderItems = new ArrayList<>();
 
     // Getterit ja setterit
@@ -109,8 +113,10 @@ public class PurchaseOrder extends AbstractEntity {
     // Metodi, joka palauttaa pilkulla erotellun yhteenvedon tilauksen tuotenimistä käyttöliittymää varten
     public String getProductSummary() {
         if (orderItems == null || orderItems.isEmpty()) return "";
-        return orderItems.stream()
-            .map(i -> i.getProduct().getName())
-            .collect(Collectors.joining(", "));
+        List<String> names = new ArrayList<>();
+        for (PurchaseOrderItem item : orderItems) {
+            names.add(item.getProduct().getName());
+        }
+        return String.join(", ", names);
     }
 }
