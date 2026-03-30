@@ -42,10 +42,12 @@ public class ProductService {
         return repository.findAll(pageable);
     }
 
-    // Sivutettu lista valinnaisella Specifition-parametrillä Criteria API-suodatusta varten
+    // Sivutettu haku, joka hyödyntää dynaamista Specificationia suodatinparametrien perusteella
     @Transactional(readOnly = true)
-    public Page<Product> getWithSpec(Pageable pageable, Specification<Product> filter) {
-        return repository.findAll(filter, pageable);
+    public Page<Product> getWithSpec(Pageable pageable, ProductSearchFilter filter) {
+        // Muodostetaan Criteria API-specification suodatinparametrien perusteella
+        Specification<Product> spec = ProductSpecification.build(filter);
+        return repository.findAll(spec, pageable);
     }
 
     @Transactional(readOnly = true)
