@@ -1,4 +1,4 @@
-package com.prodeca.views.advancedsearchview;
+package com.prodeca.views.advancedsearch;
 
 import com.prodeca.data.Product;
 import com.prodeca.services.ProductSearchFilter;
@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -26,9 +27,10 @@ import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 import java.math.BigDecimal;
 
-@PageTitle("Tila")
+@PageTitle("Tuote- ja tilaushaku")
 @Route("advanced-search")
 @Menu(order = 5, icon = LineAwesomeIconUrl.SEARCH_SOLID)
+@StyleSheet("themes/prodeca/views/advanced-search-view.css")
 @AnonymousAllowed
 public class AdvancedSearchView extends VerticalLayout {
     
@@ -171,7 +173,7 @@ public class AdvancedSearchView extends VerticalLayout {
         grid.setSizeFull();
         grid.setItems(query -> {
             var pageable = VaadinSpringDataHelpers.toSpringPageRequest(query);
-            var page = service.getWithSpec(pageable, activeFilter);
+            var page = this.service.getWithSpec(pageable, activeFilter);
             updateResultCount((int) page.getTotalElements());
             return page.stream();
         });

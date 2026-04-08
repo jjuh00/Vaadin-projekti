@@ -12,6 +12,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Menu;
@@ -37,6 +39,7 @@ import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +49,7 @@ import java.util.Set;
 @PageTitle("Tilaukset")
 @Route("orders/:orderID?/:action?(edit)")
 @Menu(order = 4, icon = LineAwesomeIconUrl.SHOPPING_CART_SOLID)
+@StyleSheet("themes/prodeca/views/purchase-order-view.css")
 @AnonymousAllowed
 @Uses(Icon.class)
 public class PurchaseOrderView extends Div implements BeforeEnterObserver {
@@ -79,7 +83,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
     public PurchaseOrderView(PurchaseOrderService orderService, ProductService productService) {
         this.orderService = orderService;
         this.productService = productService;
-        addClassNames("purchase-order-view");
+        addClassName("purchase-order-view");
 
         SplitLayout splitLayout = new SplitLayout();
         splitLayout.setSizeFull();
@@ -93,7 +97,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
         grid.addColumn(o -> o.getStatus() != null ? o.getStatus().name() : "Ei määritettyä tilausta").setHeader("Tila").setAutoWidth(true);
         grid.addColumn(PurchaseOrder::getTotalAmount).setHeader("Kokonaissumma (€").setAutoWidth(true);
         grid.addColumn(PurchaseOrder::getProductSummary).setHeader("Tuotteet").setAutoWidth(true);
-        grid.setItems(query -> orderService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
+        grid.setItems(query -> this.orderService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.asSingleSelect().addValueChangeListener(e -> {
             if (e.getValue() != null) {
@@ -105,6 +109,26 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
         });
 
         binder = new BeanValidationBinder<>(PurchaseOrder.class);
+
+        binder.forField(expectedDeliveryDate)
+                .withValidator((date, context) -> {
+                    // Haetaan tilauksen tila lomakekentästä
+                    PurchaseOrderStatus currentStatus = status.getValue();
+
+                    // Jos tilaus on TOIMITETTU, mikä tahansa pvm kelpaa
+                    if (PurchaseOrderStatus.TOIMITETTU.equals(currentStatus)) {
+                        return ValidationResult.ok();
+                    }
+
+                    // Muissa tiloissa vaaditaan odotettu toimitupvm, joka on tänään tai tulevaisuudessa
+                    if (date != null && date.isBefore(LocalDate.now())) {
+                        return ValidationResult.error("Odotetun toimituspäivän on oltava tänää tai tulevaisuudessa");
+                    }  
+
+                    return ValidationResult.ok();
+                })
+                .bind(PurchaseOrder::getExpectedDeliveryDate, PurchaseOrder::setExpectedDeliveryDate);
+
         binder.bindInstanceFields(this);
 
         // Nappien käsittelijät
@@ -117,7 +141,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
 
                 // Haetaan valitut tuotteet ja tallennetaan ne tilaukseen
                 List<Product> selected = new ArrayList<>(productsComboBox.getSelectedItems());
-                orderService.saveWithProducts(currentOrder, selected);
+                this.orderService.saveWithProducts(currentOrder, selected);
 
                 clearForm();
                 refreshGrid();
@@ -129,6 +153,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
                 );
                 n.setPosition(Position.MIDDLE);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                ex.printStackTrace();
             } catch (ValidationException ex) {
                 Notification.show("Tarkista syötteet: " + ex.getMessage()); 
             }
@@ -136,7 +161,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
 
         deleteBtn.addClickListener(e -> {
             if (currentOrder != null && currentOrder.getId() != null) {
-                orderService.delete(currentOrder.getId());
+                this.orderService.delete(currentOrder.getId());
                 clearForm();
                 refreshGrid();
                 Notification.show("Tilaus poistettu onnistuneesti");
@@ -151,7 +176,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         Optional<Long> orderId = event.getRouteParameters().get(ORDER_ID).map(Long::parseLong);
         if (orderId.isPresent()) {
-            orderService.getById(orderId.get()).ifPresentOrElse(
+            this.orderService.getById(orderId.get()).ifPresentOrElse(
                 order -> {
                     populateForm(order);
                     deleteBtn.setVisible(true);
@@ -182,7 +207,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
         status.setValue(PurchaseOrderStatus.LUONNOS);
 
         productsComboBox = new MultiSelectComboBox<>("Tuotteet");
-        productsComboBox.setItems(productService.getActive());
+        productsComboBox.setItems(this.productService.getActive());
         productsComboBox.setItemLabelGenerator(Product::getName);
 
         form.add(orderNumber, orderDate, status, expectedDeliveryDate, productsComboBox, notes);

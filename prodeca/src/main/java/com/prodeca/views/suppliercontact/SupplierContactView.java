@@ -8,11 +8,14 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
@@ -30,14 +33,16 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 import java.util.Optional;
 
-@PageTitle("Toimittajien yhteystiedot")
+@PageTitle("Yhteyshenkilöt")
 @Route("supplier-contacts/:contactID?/:action?(edit)")
 @Menu(order = 2, icon = LineAwesomeIconUrl.ADDRESS_CARD_SOLID)
+@StyleSheet("themes/prodeca/views/supplier-contact-view.css")
 @AnonymousAllowed
 @Uses(Icon.class)
 public class SupplierContactView extends Div implements BeforeEnterObserver {
@@ -72,7 +77,10 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
     public SupplierContactView(SupplierContactService contactService, SupplierService supplierService) {
         this.contactService = contactService;
         this.supplierService = supplierService;
-        addClassNames("supplier-contact-view");
+        addClassName("supplier-contact-view");
+
+        Div contextBanner = buildContextBanner();
+        add(contextBanner);
 
         SplitLayout splitLayout = new SplitLayout();
         splitLayout.setSizeFull();
@@ -89,7 +97,7 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
         grid.addColumn(SupplierContact::getJobTitle).setHeader("Titteli").setAutoWidth(true);
         grid.addColumn(SupplierContact::getEmail).setHeader("Sähköposti").setAutoWidth(true);
         grid.addColumn(SupplierContact::getPhone).setHeader("Puhelinnumero").setAutoWidth(true);
-        grid.setItems(query -> contactService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
+        grid.setItems(query -> this.contactService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);  
         grid.asSingleSelect().addValueChangeListener(e -> {
             if (e.getValue() != null) {
@@ -113,7 +121,7 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
             try {
                 if (currentContact == null) currentContact = new SupplierContact();
                 binder.writeBean(currentContact);
-                contactService.save(currentContact);
+                this.contactService.save(currentContact);
                 clearForm();
                 refreshGrid();
                 Notification.show("Yhteystiedot tallennettu onnistuneesti");
@@ -124,6 +132,7 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
                 );
                 n.setPosition(Position.MIDDLE);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                ex.printStackTrace();
             } catch (ValidationException ex) {
                 Notification.show("Tarkista syötteet: " + ex.getMessage());
             }
@@ -131,10 +140,10 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
 
         deleteBtn.addClickListener(e -> {
             if (currentContact != null && currentContact.getId() != null) {
-                contactService.delete(currentContact.getId());
+                this.contactService.delete(currentContact.getId());
                 clearForm();
                 refreshGrid();
-                Notification.show("Yhteystiedot poistettu");
+                Notification.show("Yhteyshenkilö poistettu");
                 UI.getCurrent().navigate(SupplierContactView.class);
             }
         });
@@ -142,11 +151,47 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
         deleteBtn.setVisible(false); // Piilotettu kunnes rivi on valittu
     }
 
+    // Funktio, joka rakentaa kuvaavan bannerin. Selventää tämän näkymän tarkoituksen
+    // suhteessa SupplierManagementView-näkymään
+    private Div buildContextBanner() {
+        Div banner = new Div();
+        banner.addClassName("context-banner");
+
+        banner.getStyle().set("margin-bottom", "var(--lumo-space-m)");
+        banner.getStyle().set("padding", "var(--lumo-space-m)");
+        banner.getStyle().set("background", "var(--lumo-primary-color-10pct)");
+        banner.getStyle().set("border-left", "4px solid var(--lumo-primary-color)");
+        banner.getStyle().set("border-radius", "var(--lumo-border-radius-s)");
+
+        H3 bannerTitle = new H3("Toimittajien yhteyshenkilöt");
+        bannerTitle.addClassNames(LumoUtility.Margin.NONE, LumoUtility.FontSize.MEDIUM);
+
+        Paragraph bannerDesc = new Paragraph(
+            "Tässä näkymässä voit hallinnoida toimittajiin liittyviä yhteyshenkiöitä. " +
+            "Jokaisella toimittajalla voi olla yksi yhteyshenkilö. " +
+            "Toimittajan perusteidot (nimi, puhelin, maa, rekisteröintinumero jne.) " +
+            "hallinnoidaan erikseen Toimittajat-näkymässä"
+        );
+        bannerDesc.addClassNames(
+            LumoUtility.Margin.NONE,
+            LumoUtility.TextColor.SECONDARY,
+            LumoUtility.FontSize.SMALL
+        );
+
+        // Ristiinnavigointilinkki
+        Button suppliersBtn = new Button("Siirry toimittajiin");
+        suppliersBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        suppliersBtn.addClickListener(e -> UI.getCurrent().navigate("suppliers"));
+        
+        banner.add(bannerTitle, bannerDesc, suppliersBtn);
+        return banner;
+    }
+
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         Optional<Long> contactId = event.getRouteParameters().get(CONTACT_ID).map(Long::parseLong);
         if (contactId.isPresent()) {
-            contactService.getById(contactId.get()).ifPresentOrElse(
+            this.contactService.getById(contactId.get()).ifPresentOrElse(
                 contact -> {
                     populateForm(contact);
                     deleteBtn.setVisible(true);
@@ -168,16 +213,18 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
         innerDiv.setClassName("editor");
 
         FormLayout form = new FormLayout();
+
+        supplierComboBox = new ComboBox<>("Toimittaja");
+        supplierComboBox.setItems(this.supplierService.getAll());
+        supplierComboBox.setItemLabelGenerator(Supplier::getName);
+        supplierComboBox.setHelperText("Valitse toimittaja, johon yhteyshenkilö liitetään");
+        
         firstName = new TextField("Etunimi");
         lastName = new TextField("Sukunimi");
         email = new TextField("Sähköposti");
         phone = new TextField("Puhelinnumero");
         jobTitle = new TextField("Titteli");
         notes = new TextArea("Lisätiedot");
-
-        supplierComboBox = new ComboBox<>("Toimittaja");
-        supplierComboBox.setItems(supplierService.getAll());
-        supplierComboBox.setItemLabelGenerator(Supplier::getName);
 
         form.add(supplierComboBox, firstName, lastName, email, phone, jobTitle, notes);
         innerDiv.add(form);

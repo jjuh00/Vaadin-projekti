@@ -21,35 +21,49 @@ public class SupplierContactService {
 
     @Transactional(readOnly = true)
     public Optional<SupplierContact> getById(Long id) {
-        return repository.findById(id);
+        return this.repository.findById(id);
     }
 
     @Transactional(readOnly = true)
     public Page<SupplierContact> getWithPageable(Pageable pageable) {
-        return repository.findAll(pageable);
+        return this.repository.findAll(pageable);
     }
 
     // Sivutettu lista valinnaisella Specifition-parametrillä Criteria API-suodatusta varten
     @Transactional(readOnly = true)
     public Page<SupplierContact> getWithSpec(Pageable pageable, org.springframework.data.jpa.domain.Specification<SupplierContact> filter) {
-        return repository.findAll(filter, pageable);
+        return this.repository.findAll(filter, pageable);
     }
 
     @Transactional(readOnly = true)
     public int count() {
-        return (int) repository.count();
+        return (int) this.repository.count();
     }
 
     // Palauttaa ture, jos annettulla toimittajallla on jo yhteystiedot, muuten false
     @Transactional(readOnly = true)
     public boolean supplierHasContactInfo(Supplier supplier) {
-        return repository.existsBySupplier(supplier);
+        return this.repository.existsBySupplier(supplier);
+    }
+
+    // Palauttaa toimittajaan liitetyn yhteyshenkilön koko nimen tai tyhjän merkkijonon,
+    // jos yhteystietoja ei löydy
+    @Transactional(readOnly = true)
+    public String getContactFullName(Supplier supplier) {
+        Optional<SupplierContact> contact = this.repository.findBySupplier(supplier);
+        return contact.isPresent() ? contact.get().getFullName() : "";
+    }
+
+    // Palauttaa toimittajan yhteyshenkilön (Optional-wrapperissa)
+    @Transactional(readOnly = true)
+    public Optional<SupplierContact> getBySupplier(Supplier supplier) {
+        return this.repository.findBySupplier(supplier);
     }
 
     @Transactional
     public SupplierContact save(SupplierContact contact) {
         if (contact.getId() == null && contact.getSupplier() != null) {
-            Optional<SupplierContact> existing = repository.findBySupplier(contact.getSupplier());
+            Optional<SupplierContact> existing = this.repository.findBySupplier(contact.getSupplier());
             if (existing.isPresent()) {
                 // Jos yhteystiedot löytyvät, päivitetään ne ja palautetaan vanhaa id:tä käyttäen
                 SupplierContact toUpdate = existing.get();
@@ -59,14 +73,14 @@ public class SupplierContactService {
                 toUpdate.setPhone(contact.getPhone());
                 toUpdate.setJobTitle(contact.getJobTitle());
                 toUpdate.setNotes(contact.getNotes());
-                return repository.save(toUpdate);
+                return this.repository.save(toUpdate);
             }
         }
-        return repository.save(contact);
+        return this.repository.save(contact);
     }
 
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        this.repository.deleteById(id);
     }
 }

@@ -2,11 +2,12 @@ package com.prodeca.services;
 
 import com.prodeca.data.User;
 import com.prodeca.data.UserRepository;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -18,27 +19,26 @@ public class UserService {
     }
 
     public Optional<User> get(Long id) {
-        return repository.findById(id);
+        return this.repository.findById(id);
     }
 
     public User save(User entity) {
-        return repository.save(entity);
+        return this.repository.save(entity);
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+        this.repository.deleteById(id);
     }
 
     public Page<User> list(Pageable pageable) {
-        return repository.findAll(pageable);
+        return this.repository.findAll(pageable);
     }
 
     public Page<User> list(Pageable pageable, Specification<User> filter) {
-        return repository.findAll(filter, pageable);
+        return this.repository.findAll(filter, pageable);
     }
 
     public int count() {
-        return (int) repository.count();
+        return (int) this.repository.count();
     }
-
 }

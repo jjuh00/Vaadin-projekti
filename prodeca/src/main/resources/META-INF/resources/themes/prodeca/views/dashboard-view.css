@@ -1,0 +1,90 @@
+.dashboard-view {
+    min-height: 100%;
+    animation: fadeInPage 0.3s ease forwards;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-view .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-10pct);
+    transition: transform 0.2s ease cubic-bezier(0.35 1.55 0.65 1), box-shadow 0.2s ease;
+}
+
+/* Kortin zoom-in -efekti (3%) */
+.dashboard-view .stat-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px hsla(220, 80%, 50%, 0.15);
+}
+
+.dashboard-view .stat-card-blue {
+    border-top: 3px solid hsl(220, 80%, 55%);
+}
+.dashboard-view .stat-card-green {
+    border-top: 3px solid hsl(145, 55%, 40%);
+}
+.dashboard-view .stat-card-purple {
+    border-top: 3px solid hsl(270, 60%, 55%);
+}
+
+.dashboard-view .stat-card-value {
+    display: block;
+    line-height: 1.1;
+}
+.dashboard-view .stat-card-label {
+    display: block;
+    margin-top: var(--lumo-space-xs);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Pikanavigointikortit */
+.dashboard-view .nav-card {
+    background: var(--lumo-base-color);
+    user-select: none;
+    border: 1px solid var(--lumo-contrast-10pct);
+    transition: transform 0.15s ease cubic-bezier(0.35 1.4 0.65 1), box-shadow 0.15s ease;
+}
+
+.dashboard-view .nav-card:hover {
+    box-shadow: 0 6px 20px var(--lumo-contrast-20pct);
+    transform: translateY(-3px) scale(1.01);
+}
+
+.dashboard-view .nav-card:active {
+    box-shadow: 0 2px 6px var(--lumo-contrast-10pct);
+    transform: translateY(0) scale(0.99);
+    transition-duration: 0.1s;
+}
+
+.dashboard-view .nav-card-blue {
+    border-left: 4px solid hsl(220, 80%, 55%);
+}
+.dashboard-view .nav-card-green {
+    border-left: 4px solid hsl(145, 55%, 40%);
+}
+.dashboard-view .nav-card-purple {
+    border-left: 4px solid hsl(270, 60%, 55%);
+}
+.dashboard-view .nav-card-orange {
+    border-left: 4px solid hsl(35, 90%, 50%);
+}
+
+.dashboard-view h2 {
+    letter-spacing: -0.03em;
+}
+.dashboard-view h3 {
+    letter-spacing: -0.02em;
+}

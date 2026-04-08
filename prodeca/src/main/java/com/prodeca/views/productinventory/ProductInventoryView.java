@@ -1,10 +1,5 @@
 package com.prodeca.views.productinventory;
 
-import java.util.Optional;
-
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
-
 import com.prodeca.data.Product;
 import com.prodeca.data.Supplier;
 import com.prodeca.services.ProductService;
@@ -14,6 +9,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
@@ -37,10 +33,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.vaadin.lineawesome.LineAwesomeIconUrl;
+
+import java.util.Optional;
 
 @PageTitle("Tuotevarasto")
 @Route("products/:productID?/:action?(edit)")
 @Menu(order = 3, icon = LineAwesomeIconUrl.BOX_SOLID)
+@StyleSheet("themes/prodeca/views/product-inventory-view.css")
 @AnonymousAllowed
 @Uses(Icon.class)
 public class ProductInventoryView extends Div implements BeforeEnterObserver {
@@ -77,7 +78,9 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
     public ProductInventoryView(ProductService productService, SupplierService supplierService) {
         this.productService = productService;
         this.supplierService = supplierService;
-        addClassNames("product-inventory-view");
+        addClassName("product-inventory-view");
+
+        setSizeFull();
 
         SplitLayout splitLayout = new SplitLayout();
         splitLayout.setSizeFull();
@@ -96,7 +99,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
             .setAutoWidth(true)
             .setSortable(true);
         grid.addColumn(p -> p.isActive() ? "Kyllä" : "Ei").setHeader("Aktiivinen").setAutoWidth(true);
-        grid.setItems(query -> productService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
+        grid.setItems(query -> this.productService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
         grid.asSingleSelect().addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 UI.getCurrent().navigate(String.format(EDIT_ROUTE, e.getValue().getId()));
@@ -119,7 +122,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
             try {
                 if (currentProduct == null) currentProduct = new Product();
                 binder.writeBean(currentProduct);
-                productService.save(currentProduct);
+                this.productService.save(currentProduct);
                 clearForm();
                 refreshGrid();
                 Notification.show("Tuote tallennettu onnistuneesti");
@@ -130,6 +133,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
                 );
                 n.setPosition(Position.MIDDLE);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                ex.printStackTrace();
             } catch (ValidationException ex) {
                Notification.show("Tarkista syötteet: " + ex.getMessage()); 
             }
@@ -137,7 +141,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
 
         deleteBtn.addClickListener(e -> {
             if (currentProduct != null && currentProduct.getId() != null) {
-                productService.delete(currentProduct.getId());
+                this.productService.delete(currentProduct.getId());
                 clearForm();
                 refreshGrid();
                 Notification.show("Tuote poistettu onnistuneesti");
@@ -152,7 +156,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         Optional<Long> productId = event.getRouteParameters().get(PRODUCT_ID).map(Long::parseLong);
         if (productId.isPresent()) {
-            productService.getById(productId.get()).ifPresentOrElse(
+            this.productService.getById(productId.get()).ifPresentOrElse(
                 product -> {
                     populateForm(product);
                     deleteBtn.setVisible(true);
@@ -183,7 +187,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
         active = new Checkbox("Aktiivinen");
 
         supplierComboBox = new ComboBox<>("Toimittaja");
-        supplierComboBox.setItems(supplierService.getAll());
+        supplierComboBox.setItems(this.supplierService.getAll());
         supplierComboBox.setItemLabelGenerator(Supplier::getName);
 
         form.add(name, sku, category, unitPrice, stockQuantity, supplierComboBox, weight, description, active);

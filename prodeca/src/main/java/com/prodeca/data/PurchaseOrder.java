@@ -1,7 +1,12 @@
 package com.prodeca.data;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,9 +23,8 @@ import java.util.List;
  * - 1. Tilausnumero (pakollinen, merkkijonon pituus, uniikki)
  * - 2. Tilauspäivä (pakollinen, ei tulevaisuudessa)
  * - 3. Tila (pakollinen, enum PurchaseOrderStatus)
- * - 4. Kokonaishinta (pakollinen, positiivinen desimaaliluku)
- * - 5. Odotettu toimituspäivä (valinnainen, tulevaisuudessa)
- * - 6. Huomautukset/lisätiedot (valinnainen, merkkijonon pituus)
+ * - 4. Kokonaishinta (pakollinen, positiivinen desimaaliluku))
+ * - 5. Huomautukset/lisätiedot (valinnainen, merkkijonon pituus)
  */
 
 @Entity
@@ -49,7 +53,6 @@ public class PurchaseOrder extends AbstractEntity {
     @Column(nullable = false, precision = 14, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
-    @Future(message = "Odotetun toimituspäivän pitää olla tulevaisuudessa")
     @Column
     private LocalDate expectedDeliveryDate;
 

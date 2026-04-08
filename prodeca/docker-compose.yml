@@ -2,7 +2,7 @@ services:
   # PostegreSQL-tietokanta
   db:
     image: postgres:17-alpine
-    container_name: prodeca-postgres
+    container_name: prodeca_postgres
     environment:
       POSTGRES_DB: prodeca
       POSTGRES_USER: pr0decAU54R

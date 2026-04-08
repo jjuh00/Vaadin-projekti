@@ -23,23 +23,23 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Optional<Product> getById(Long id) {
-        return repository.findById(id);
+        return this.repository.findById(id);
     }
 
     // Hakee kaikki aktiiviset tuottet (käytetään M:N valitsijan listaukseen tilauslomakkeella)
     @Transactional(readOnly = true)
     public List<Product> getActive() {
-        return repository.findByActiveTrue();
+        return this.repository.findByActiveTrue();
     }
 
     @Transactional(readOnly = true)
     public List<Product> getBySupplier(Supplier supplier) {
-        return repository.findBySupplier(supplier);
+        return this.repository.findBySupplier(supplier);
     }
 
     @Transactional(readOnly = true)
     public Page<Product> getWithPageable(Pageable pageable) {
-        return repository.findAll(pageable);
+        return this.repository.findAll(pageable);
     }
 
     // Sivutettu haku, joka hyödyntää dynaamista Specificationia suodatinparametrien perusteella
@@ -47,21 +47,21 @@ public class ProductService {
     public Page<Product> getWithSpec(Pageable pageable, ProductSearchFilter filter) {
         // Muodostetaan Criteria API-specification suodatinparametrien perusteella
         Specification<Product> spec = ProductSpecification.build(filter);
-        return repository.findAll(spec, pageable);
+        return this.repository.findAll(spec, pageable);
     }
 
     @Transactional(readOnly = true)
     public int count() {
-        return (int) repository.count();
+        return (int) this.repository.count();
     }
 
     @Transactional
     public Product save(Product product) {
-        return repository.save(product);
+        return this.repository.save(product);
     }
 
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        this.repository.deleteById(id);
     }
 }

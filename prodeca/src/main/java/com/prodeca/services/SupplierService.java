@@ -22,38 +22,38 @@ public class SupplierService {
 
     @Transactional(readOnly = true)
     public Optional<Supplier> getById(Long id) {
-        return repository.findById(id);
+        return this.repository.findById(id);
     }
 
     // Palautetaan kaikki toimittajat
     @Transactional(readOnly = true)
     public List<Supplier> getAll() {
-        return repository.findAll();
+        return this.repository.findAll();
     }
 
     @Transactional(readOnly = true)
     public Page<Supplier> getWithPageable(Pageable pageable) {
-        return repository.findAll(pageable);
+        return this.repository.findAll(pageable);
     }   
 
     // Sivutettu lista valinnaisella Specifition-parametrillä Criteria API-suodatusta varten
     @Transactional(readOnly = true)
     public Page<Supplier> getWithSpec(Pageable pageable, Specification<Supplier> filter) {
-        return repository.findAll(filter, pageable);
+        return this.repository.findAll(filter, pageable);
     }
 
     @Transactional(readOnly = true)
     public int count() {
-        return (int) repository.count();
+        return (int) this.repository.count();
     }
 
     @Transactional
     public Supplier save(Supplier supplier) {
-        return repository.save(supplier);
+        return this.repository.save(supplier);
     }
 
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        this.repository.deleteById(id);
     }
 }

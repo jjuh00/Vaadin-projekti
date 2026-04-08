@@ -11,7 +11,8 @@ import com.vaadin.flow.theme.lumo.Lumo;
 
 @SpringBootApplication
 @StyleSheet(Lumo.STYLESHEET)
-@StyleSheet("styles.css")
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
+@StyleSheet("themes/prodeca/styles.css")
 @EnableConfigurationProperties(SqlInitializationProperties.class)
 public class Application implements AppShellConfigurator {
 

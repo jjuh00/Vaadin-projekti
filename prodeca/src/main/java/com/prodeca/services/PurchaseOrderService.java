@@ -4,9 +4,10 @@ import com.prodeca.data.Product;
 import com.prodeca.data.PurchaseOrder;
 import com.prodeca.data.PurchaseOrderItem;
 import com.prodeca.data.PurchaseOrderRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,63 +20,68 @@ public class PurchaseOrderService {
     
     private final PurchaseOrderRepository repository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public PurchaseOrderService(PurchaseOrderRepository repository) {
         this.repository = repository;
     }
 
     @Transactional(readOnly = true)
     public Optional<PurchaseOrder> getById(Long id) {
-        // Käyttää JPQL-kyselyä hakeakseen tilaukseen liittyvät tilausrivit ja tuotteet
-        return repository.findByIdWithItems(id);
+        return this.repository.findById(id);
     }
 
     @Transactional(readOnly = true)
     public Page<PurchaseOrder> getWithPageable(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<PurchaseOrder> getWithSpec(Pageable pageable, Specification<PurchaseOrder> filter) {
-        return repository.findAll(filter, pageable);
+        return this.repository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     public int count() {
-        return (int) repository.count();
+        return (int) this.repository.count();
     }
 
-    /**
-     * Tallentaa tilauksen yhdessä sen tuotteiden ja tilausrivien kanssa.
-     * 
-     * List<Product> selectedProducts korvaa KAIKKI olemassaolevat tilausrivit tilaukseen.
-     * Yksikköhinnat haetaan nykyisen tuotteen hinnasta ja määrä asetetaan oletuksena 1:ksi per tuote, jos
-     * sitä ei ole erikseen määritelty toisella tavalla
-     */
+    // Tallentaa tilauksen ja korvaa sen tilausrivit uusilla tuotteilla
     @Transactional
     public PurchaseOrder saveWithProducts(PurchaseOrder order, List<Product> selectedProducts) {
-        // Poistetaan kaikki vanhat tilausrivit
-        order.getOrderItems().clear();
+        PurchaseOrder managedOrder = this.repository.findById(order.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Tilausta ei löydy ID:llä " + order.getId()
+                ));
+
+        // Kopioidaan binderissä olevat kentät irrotetusta oliosta managed-olioon
+        managedOrder.setOrderNumber(order.getOrderNumber());
+        managedOrder.setOrderDate(order.getOrderDate());
+        managedOrder.setStatus(order.getStatus());
+        managedOrder.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+        managedOrder.setNotes(order.getNotes());
+
+        // Siivotaan vanhat tilausrivit
+        managedOrder.getOrderItems().clear();
+
+        // Pakotetaan Hibernate päivittämään tietokanta ennen uusien tilausrivien lisäämistä
+        entityManager.flush();
 
         // Luodaan uudet tilausrivit jokaiselle valitulle tuotteelle
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (Product p : selectedProducts) {
             PurchaseOrderItem item = new PurchaseOrderItem();
-            item.setPurchaseOrder(order);
+            item.setPurchaseOrder(managedOrder);
             item.setProduct(p);
             item.setQuantity(1); // Oletus 1
-            item.setUnitPrice(p.getUnitPrice()); // Nykyinen tuotteen hinta
-            order.getOrderItems().add(item);
+            item.setUnitPrice(p.getUnitPrice());
+            managedOrder.getOrderItems().add(item);
             totalPrice = totalPrice.add(item.getUnitPrice());
         }
 
-        // Lasketaan kokonaishinta
-        order.setTotalAmount(totalPrice);
+        managedOrder.setTotalAmount(totalPrice);
 
-        return repository.save(order);
+        return this.repository.save(managedOrder);
     }
 
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        this.repository.deleteById(id);
     }
 }

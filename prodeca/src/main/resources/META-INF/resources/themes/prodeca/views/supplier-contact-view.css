@@ -13,6 +13,22 @@
     height: 100%;
 }
 
+.supplier-contact-view .context-banner {
+    flex-shrink: 0;
+    animation: bannerFadeIn 0.3s ease forwards;
+}
+
+@keyframes bannerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .supplier-contact-view .editor-layout {
     display: flex;
     flex-direction: column;
