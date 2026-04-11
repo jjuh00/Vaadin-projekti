@@ -3,6 +3,7 @@ package com.prodeca.views.dashboard;
 import com.prodeca.services.ProductService;
 import com.prodeca.services.PurchaseOrderService;
 import com.prodeca.services.SupplierService;
+import com.prodeca.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.Div;
@@ -20,7 +21,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 @PageTitle("Aloitus")
-@Route("")
+@Route(value = "", layout = MainLayout.class)
 @Menu(order = 0, icon = LineAwesomeIconUrl.HOME_SOLID)
 @StyleSheet("themes/prodeca/views/dashboard-view.css")
 @AnonymousAllowed

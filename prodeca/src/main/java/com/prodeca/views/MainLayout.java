@@ -22,13 +22,11 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,11 +40,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private H1 viewTitle;
 
     private final AuthenticatedUser authenticatedUser;
-    private final AccessAnnotationChecker accessChecker;
 
-    public MainLayout(AuthenticatedUser authenticatedUser, AccessAnnotationChecker accessChecker) {
+    public MainLayout(AuthenticatedUser authenticatedUser) {
         this.authenticatedUser = authenticatedUser;
-        this.accessChecker = accessChecker;
 
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
@@ -91,9 +87,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
             // Avatar
             Avatar avatar = new Avatar(user.getName());
-            if (user.getProfilePicture() != null && user.getProfilePicture().length > 0) {
-                String base64Image = Base64.getEncoder().encodeToString(user.getProfilePicture());
-                avatar.setImage("data:image/png;base64," + base64Image);
+            String dataUri = user.getAvatarUri();
+            if (dataUri != null) {
+                avatar.setImage(dataUri);
             }
             avatar.setThemeName("xsmall");
             avatar.getElement().setAttribute("tabindex", "-1");
@@ -115,10 +111,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         } else {
             // Kirjautumattomille käyttäjille näytetään vain kirjaudutumislinkki
             Anchor loginLink = new Anchor("login", "Kirjaudu sisään");
-            loginLink.addClassNames(
-                LumoUtility.TextColor.PRIMARY, LumoUtility.TextColor.PRIMARY
-            );
-            userSection.add(loginLink);
+            loginLink.addClassName(LumoUtility.TextColor.PRIMARY);
+
+            Anchor registerLink = new Anchor("register", "Rekisteröidy");
+            registerLink.addClassName(LumoUtility.TextColor.SECONDARY);
+
+            userSection.add(loginLink, registerLink);
         }
 
         return userSection;
@@ -139,7 +137,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         Scroller scroller = new Scroller(createNavigation());
         scroller.addClassName("drawer-scroller");
 
-        // Kiinnitetty alatunnuste drawerin alareunassa
+        // Kiinnitetty alatunniste drawerin alareunassa
         Footer drawerFooter = createFooter();
 
         addToDrawer(drawerHeader, scroller, drawerFooter);

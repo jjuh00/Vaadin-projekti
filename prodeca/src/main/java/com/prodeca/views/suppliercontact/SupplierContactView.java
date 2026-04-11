@@ -4,6 +4,7 @@ import com.prodeca.data.Supplier;
 import com.prodeca.data.SupplierContact;
 import com.prodeca.services.SupplierContactService;
 import com.prodeca.services.SupplierService;
+import com.prodeca.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -31,19 +32,19 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.util.Optional;
 
 @PageTitle("Yhteyshenkilöt")
-@Route("supplier-contacts/:contactID?/:action?(edit)")
-@Menu(order = 2, icon = LineAwesomeIconUrl.ADDRESS_CARD_SOLID)
+@Route(value = "supplier-contacts/:contactID?/:action?(edit)", layout = MainLayout.class)
+@Menu(order = 5, icon = LineAwesomeIconUrl.ADDRESS_CARD_SOLID)
 @StyleSheet("themes/prodeca/views/supplier-contact-view.css")
-@AnonymousAllowed
+@RolesAllowed({"USER", "SUPER"})
 @Uses(Icon.class)
 public class SupplierContactView extends Div implements BeforeEnterObserver {
     

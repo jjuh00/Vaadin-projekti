@@ -3,6 +3,7 @@ package com.prodeca.views.advancedsearch;
 import com.prodeca.data.Product;
 import com.prodeca.services.ProductSearchFilter;
 import com.prodeca.services.ProductService;
+import com.prodeca.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -21,17 +22,17 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import jakarta.annotation.security.PermitAll;
 
 import java.math.BigDecimal;
 
 @PageTitle("Tuote- ja tilaushaku")
-@Route("advanced-search")
-@Menu(order = 5, icon = LineAwesomeIconUrl.SEARCH_SOLID)
+@Route(value = "advanced-search", layout = MainLayout.class)
+@Menu(order = 4, icon = LineAwesomeIconUrl.SEARCH_SOLID)
 @StyleSheet("themes/prodeca/views/advanced-search-view.css")
-@AnonymousAllowed
+@PermitAll
 public class AdvancedSearchView extends VerticalLayout {
     
     // Hakukentät

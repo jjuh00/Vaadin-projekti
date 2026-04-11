@@ -4,6 +4,7 @@ import com.prodeca.data.Product;
 import com.prodeca.data.Supplier;
 import com.prodeca.services.ProductService;
 import com.prodeca.services.SupplierService;
+import com.prodeca.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -31,18 +32,18 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.util.Optional;
 
 @PageTitle("Tuotevarasto")
-@Route("products/:productID?/:action?(edit)")
-@Menu(order = 3, icon = LineAwesomeIconUrl.BOX_SOLID)
+@Route(value = "products/:productID?/:action?(edit)", layout = MainLayout.class)
+@Menu(order = 2, icon = LineAwesomeIconUrl.BOX_SOLID)
 @StyleSheet("themes/prodeca/views/product-inventory-view.css")
-@AnonymousAllowed
+@RolesAllowed({"USER", "SUPER"})
 @Uses(Icon.class)
 public class ProductInventoryView extends Div implements BeforeEnterObserver {
 

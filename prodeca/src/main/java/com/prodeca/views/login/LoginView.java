@@ -11,9 +11,9 @@ import com.vaadin.flow.router.internal.RouteUtil;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
-@AnonymousAllowed
-@PageTitle("Login")
+@PageTitle("Kirjaudu sisään")
 @Route(value = "login")
+@AnonymousAllowed
 public class LoginView extends LoginOverlay implements BeforeEnterObserver {
 
     private final AuthenticatedUser authenticatedUser;
@@ -25,7 +25,11 @@ public class LoginView extends LoginOverlay implements BeforeEnterObserver {
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setHeader(new LoginI18n.Header());
         i18n.getHeader().setTitle("Prodeca");
-        i18n.getHeader().setDescription("Kirjaudu sisään käyttäen user/user tai admin/admin");
+        i18n.getHeader().setDescription(
+            "Kirjaudu sisään tunnuksilla:\n" +
+            "admin/admin123 (admin-käyttäjä)\n" +
+            "user/user123 (tavallinen käyttäjä)"
+        );
         i18n.setAdditionalInformation(null);
         setI18n(i18n);
 

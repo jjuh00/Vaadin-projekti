@@ -58,8 +58,8 @@ public class UserService {
     }
 
     @Transactional
-    public void delete(User user) {
-        this.repository.delete(user);
+    public void delete(Long id) {
+        this.repository.deleteById(id);
     }
 
     public Page<User> getWithPageable(Pageable pageable) {

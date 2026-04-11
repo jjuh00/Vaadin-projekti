@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.Base64;
 import java.util.Set;
 
 /**
@@ -17,6 +18,8 @@ import java.util.Set;
  * 3. Sähköposti (pakollinen, oikea muoto)
  * 4. Salasana (pakollinen)
  * 5. Rooli (pakollinen, Role-enum)
+ * 
+ * Profiilikuva ja sen MIME-tyyppi tallennetaan yhdessä tietokantaan
  */
 
 @Entity
@@ -50,9 +53,12 @@ public class User extends AbstractEntity {
     private Set<Role> roles;
 
     // Profiilikuva (tavutaulukko)
-    @Lob
-    @Column(length = 1_000_000)
+    @Column(columnDefinition = "bytea")
     private byte[] profilePicture;
+
+    // Profiilikuvan MIME-tyyppi
+    @Column(length = 50)
+    private String profilePictureType;
 
     // Getterit ja setterit
 
@@ -91,5 +97,20 @@ public class User extends AbstractEntity {
     }
     public void setProfilePicture(byte[] profilePicture) {
         this.profilePicture = profilePicture;
+    }
+    public String getProfilePictureType() {
+        return profilePictureType;
+    }
+    public void setProfilePictureType(String profilePictureType) {
+        this.profilePictureType = profilePictureType;
+    }
+
+    // Metodi, joka muodostaa valmiin URI:n avatarille. Palauttaa null, jos kuvaa ei ole asetettu
+    public String getAvatarUri() {
+        if (profilePicture == null || profilePicture.length == 0) return null;
+        // Käytetään tallennettua MIME-tyypiä (fallback "image/png")
+        String mimeType = (profilePictureType != null && !profilePictureType.isBlank()) ? profilePictureType : "image/png";
+        String base64Image = Base64.getEncoder().encodeToString(profilePicture);
+        return "data:" + mimeType + ";base64," + base64Image;
     }
 }

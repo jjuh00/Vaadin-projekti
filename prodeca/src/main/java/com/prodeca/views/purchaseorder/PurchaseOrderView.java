@@ -6,6 +6,7 @@ import com.prodeca.data.PurchaseOrderItem;
 import com.prodeca.data.PurchaseOrderStatus;
 import com.prodeca.services.ProductService;
 import com.prodeca.services.PurchaseOrderService;
+import com.prodeca.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -34,10 +35,10 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -47,10 +48,10 @@ import java.util.Optional;
 import java.util.Set;
 
 @PageTitle("Tilaukset")
-@Route("orders/:orderID?/:action?(edit)")
-@Menu(order = 4, icon = LineAwesomeIconUrl.SHOPPING_CART_SOLID)
+@Route(value = "orders/:orderID?/:action?(edit)", layout = MainLayout.class)
+@Menu(order = 3, icon = LineAwesomeIconUrl.SHOPPING_CART_SOLID)
 @StyleSheet("themes/prodeca/views/purchase-order-view.css")
-@AnonymousAllowed
+@RolesAllowed({"USER", "SUPER"})
 @Uses(Icon.class)
 public class PurchaseOrderView extends Div implements BeforeEnterObserver {
 
