@@ -32,7 +32,7 @@ public class UserService {
         return this.repository.findByUsername(username);
     }
 
-    // Tallennetaan käyttäjätiedot (salattu salasana)
+    // Tallennetaan käyttäjätiedot (salatulla salasanalla)
     @Transactional
     public User save(User user) {
         return this.repository.save(user);

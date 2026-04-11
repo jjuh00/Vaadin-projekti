@@ -29,7 +29,7 @@ public class Application implements AppShellConfigurator {
         SpringApplication.run(Application.class, args);
     }
 
-    // Funktio, joka alustaa käyttäjät tietokantaan sovelluksen käynnistyessä
+    // Alustetaan user/admin-käyttäjät tietokantaan sovelluksen käynnistyessä
     @Bean
     CommandLineRunner initUsers(UserService service) {
         return args -> {

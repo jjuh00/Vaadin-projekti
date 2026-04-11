@@ -14,7 +14,7 @@ import java.util.Set;
  * Validoitavat kentät:
  * 1. Käyttäjänimi (pakollinen, merkkijonon pituus, uniikki)
  * 2. Näyttönimi (pakollinen, merkkijonon pituus)
- * 3. Sähköposti (pakolloinen, oikea muoto)
+ * 3. Sähköposti (pakollinen, oikea muoto)
  * 4. Salasana (pakollinen)
  * 5. Rooli (pakollinen, Role-enum)
  */
