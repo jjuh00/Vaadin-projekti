@@ -36,9 +36,9 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-import jakarta.annotation.security.RolesAllowed;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
         grid.addColumn(PurchaseOrder::getOrderNumber).setHeader("Tilausnumero").setAutoWidth(true).setSortable(true);
         grid.addColumn(PurchaseOrder::getOrderDate).setHeader("Tilauspäivä").setAutoWidth(true).setSortable(true);
         grid.addColumn(o -> o.getStatus() != null ? o.getStatus().name() : "Ei määritettyä tilausta").setHeader("Tila").setAutoWidth(true);
-        grid.addColumn(PurchaseOrder::getTotalAmount).setHeader("Kokonaissumma (€").setAutoWidth(true);
+        grid.addColumn(PurchaseOrder::getTotalAmount).setHeader("Kokonaissumma (€)").setAutoWidth(true);
         grid.addColumn(PurchaseOrder::getProductSummary).setHeader("Tuotteet").setAutoWidth(true);
         grid.setItems(query -> this.orderService.getWithPageable(VaadinSpringDataHelpers.toSpringPageRequest(query)).stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
@@ -123,7 +123,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
 
                     // Muissa tiloissa vaaditaan odotettu toimitupvm, joka on tänään tai tulevaisuudessa
                     if (date != null && date.isBefore(LocalDate.now())) {
-                        return ValidationResult.error("Odotetun toimituspäivän on oltava tänää tai tulevaisuudessa");
+                        return ValidationResult.error("Odotetun toimituspäivän on oltava tänään tai tulevaisuudessa");
                     }  
 
                     return ValidationResult.ok();
@@ -152,7 +152,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
                 Notification n = Notification.show(
                     "Yhtäaikainen muokkausvirhe: joku muu on muokannut tämän tilauksen tietoja. Lataa tiedot uudestaan ja yritä uudestaan"
                 );
-                n.setPosition(Position.MIDDLE);
+                n.setPosition(Position.BOTTOM_END);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 ex.printStackTrace();
             } catch (ValidationException ex) {
@@ -183,7 +183,7 @@ public class PurchaseOrderView extends Div implements BeforeEnterObserver {
                     deleteBtn.setVisible(true);
                 },
                 () -> {
-                    Notification.show("Tilausta ei löytynyt, ID: " + orderId.get(), 3000, Notification.Position.BOTTOM_START);
+                    Notification.show("Tilausta ei löytynyt, ID: " + orderId.get(), 3000, Notification.Position.BOTTOM_END);
                     refreshGrid();
                     event.forwardTo(PurchaseOrderView.class);
                 }

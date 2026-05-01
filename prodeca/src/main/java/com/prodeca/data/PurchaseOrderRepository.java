@@ -14,7 +14,7 @@ public interface PurchaseOrderRepository extends
     Optional<PurchaseOrder> findByOrderNumber(String orderNumber);
 
     /**
-     * Lataa tilauksen yhdessä sen tilausrivien ja tuotteiden kanssa. Estää
+     * Ladataan tilauks yhdessä sen tilausrivien ja tuotteiden kanssa. Tämä estää
      * N+1 kyselyt, kun getProductSummary()-metodia kutsutaan jokaista riviä varten listanäkymässä
      */
     @Query("""

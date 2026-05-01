@@ -35,9 +35,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-import jakarta.annotation.security.RolesAllowed;
 
 import java.util.Optional;
 
@@ -134,7 +134,7 @@ public class SupplierManagementView extends Div implements BeforeEnterObserver {
                 Notification n = Notification.show(
                     "Yhtäaikainen muokkausvirhe: joku muu on muokannut tätä toimittajaa. Lataa tiedot uudestaan ja yritä uudestaan"
                 );
-                n.setPosition(Position.MIDDLE);
+                n.setPosition(Position.BOTTOM_END);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 ex.printStackTrace();
             } catch (ValidationException ex) {
@@ -166,7 +166,7 @@ public class SupplierManagementView extends Div implements BeforeEnterObserver {
                     refreshContactInfoPanel(supplier);
                 },
                 () -> {
-                    Notification.show("Toimittajaa ei löytynyt, ID: " + supplierId.get(), 3000, Notification.Position.BOTTOM_START);
+                    Notification.show("Toimittajaa ei löytynyt, ID: " + supplierId.get(), 3000, Notification.Position.BOTTOM_END);
                     refreshGrid();
                     event.forwardTo(SupplierManagementView.class);
                 }
@@ -207,9 +207,10 @@ public class SupplierManagementView extends Div implements BeforeEnterObserver {
         contactContent.setSpacing(false);
         contactContent.setPadding(false);
 
-        contactContent.getStyle().set("padding", "var(--lumo-space-m)");
-        contactContent.getStyle().set("background", "var(--lumo-contrast-5pct)");
-        contactContent.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
+        contactContent.getStyle()
+                      .set("padding", "var(--lumo-space-m)")
+                      .set("background", "var(--lumo-contrast-5pct)")
+                      .set("border-radius", "var(--lumo-border-radius-m)");
 
         Span infoText = new Span(
             "Jokaisella toimittajalla voi olla yksi yhteyshenkilö. " +

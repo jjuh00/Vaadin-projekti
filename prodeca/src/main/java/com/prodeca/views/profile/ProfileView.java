@@ -22,8 +22,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.streams.UploadHandler;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 @PageTitle("Profiili")
 @Route(value = "profile", layout = MainLayout.class)
@@ -124,7 +124,7 @@ public class ProfileView extends VerticalLayout {
         upload.setUploadButton(uploadBtn);
 
         upload.addFileRejectedListener(e -> {
-            Notification error = Notification.show("Tiedosto hylätty: " + e.getErrorMessage(), 3000, Notification.Position.MIDDLE);
+            Notification error = Notification.show("Tiedosto hylätty: " + e.getErrorMessage(), 3000, Notification.Position.BOTTOM_END);
             error.addThemeVariants(NotificationVariant.LUMO_ERROR);
         });
 

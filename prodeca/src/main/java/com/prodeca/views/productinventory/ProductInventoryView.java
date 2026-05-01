@@ -2,9 +2,15 @@ package com.prodeca.views.productinventory;
 
 import com.prodeca.data.Product;
 import com.prodeca.data.Supplier;
+import com.prodeca.services.InventoryBroadcaster;
+import com.prodeca.services.ProductDataTransferService;
 import com.prodeca.services.ProductService;
 import com.prodeca.services.SupplierService;
 import com.prodeca.views.MainLayout;
+import com.prodeca.views.component.QuillEditorField;
+import com.opencsv.exceptions.CsvException;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -15,16 +21,19 @@ import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -32,11 +41,16 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-import jakarta.annotation.security.RolesAllowed;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @PageTitle("Tuotevarasto")
@@ -58,12 +72,14 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
     private BigDecimalField unitPrice;
     private IntegerField stockQuantity;
     private TextField category;
-    private TextArea description;
     private BigDecimalField weight;
     private Checkbox active;
 
     // ComboBox linkitettyjen toimittajien valintaan
     private ComboBox<Supplier> supplierComboBox;
+
+    // Quill.js -tekstieditori tuotteen kuvaukselle
+    private QuillEditorField description;
 
     // Napit
     private final Button cancelBtn = new Button("Peruuta");
@@ -75,19 +91,35 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
 
     private final ProductService productService;
     private final SupplierService supplierService;
+    private final ProductDataTransferService dataTransferService;
+    private final InventoryBroadcaster broadcaster;
 
-    public ProductInventoryView(ProductService productService, SupplierService supplierService) {
+    private Registration broadcasterReg;
+
+    public ProductInventoryView(ProductService productService, SupplierService supplierService, 
+        ProductDataTransferService dataTransferService, InventoryBroadcaster broadcaster) {
         this.productService = productService;
         this.supplierService = supplierService;
-        addClassName("product-inventory-view");
+        this.dataTransferService = dataTransferService;
+        this.broadcaster = broadcaster;
 
+        addClassName("product-inventory-view");
         setSizeFull();
 
+        // SplitLayout (grid ja lomake)
         SplitLayout splitLayout = new SplitLayout();
         splitLayout.setSizeFull();
         createGridLayout(splitLayout);
         createEditorLayout(splitLayout);
-        add(splitLayout);
+
+        // Palkki tuonti- ja vientinapeille
+        Div topBar = new Div(buildImportExportToolbar());
+        topBar.addClassNames(
+            LumoUtility.Padding.Horizontal.MEDIUM, LumoUtility.Padding.Vertical.SMALL,
+            LumoUtility.Display.FLEX, LumoUtility.JustifyContent.END
+        );
+
+        add(topBar, splitLayout);
 
         // Gridin sarakkeet
         grid.addColumn(Product::getName).setHeader("Tuotteen nimi").setAutoWidth(true).setSortable(true);
@@ -113,8 +145,9 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
         // Binderin sidonta lomakekenttiin
         binder = new BeanValidationBinder<>(Product.class);
         binder.bindInstanceFields(this);
-        // Sidotaan ComboBox manuaalisesti
+        // Sidotaan ComboBox ja QuillEditorField manuaalisesti
         binder.bind(supplierComboBox, Product::getSupplier, Product::setSupplier);
+        binder.bind(description, Product::getDescription, Product::setDescription);
 
         // Nappien käsittelijät
         cancelBtn.addClickListener(e -> { clearForm(); refreshGrid(); });
@@ -132,7 +165,7 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
                 Notification n = Notification.show(
                     "Yhtäaikainen muokkausvirhe: joku muu on muokannut tätä tuotetta. Lataa tiedot uudestaan ja yritä uudestaan"
                 );
-                n.setPosition(Position.MIDDLE);
+                n.setPosition(Position.BOTTOM_END);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 ex.printStackTrace();
             } catch (ValidationException ex) {
@@ -163,12 +196,86 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
                     deleteBtn.setVisible(true);
                 },
                 () -> {
-                    Notification.show("Tuotetta ei löytynyt, ID: " + productId.get(), 3000, Position.BOTTOM_START);
+                    Notification.show("Tuotetta ei löytynyt, ID: " + productId.get(), 3000, Position.BOTTOM_END);
                     refreshGrid();
                     event.forwardTo(ProductInventoryView.class);
                 }
             );
         }
+    }
+
+    // Rekisteröidään kuuntelija, joka päivittää gridin automaattisesti
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        broadcasterReg = this.broadcaster.register(message ->
+            attachEvent.getUI().access(() -> {
+                refreshGrid();
+                Notification.show(
+                    "Varastotilanne pävitetty: " + message, 3000, Position.BOTTOM_START
+                );
+            })
+        );
+    }
+
+    // Poistetaan kuuntelija, kun näkymä suljetaan
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        if (broadcasterReg != null) {
+            broadcasterReg.remove();
+            broadcasterReg = null;
+        }
+    }
+
+    // Funktio, joka rakentaa datojen tuonti- ja vientipainikkeet
+    private HorizontalLayout buildImportExportToolbar() {
+        // CSV-vienti
+        Button exportCsvBtn = new Button("Vie CSV", VaadinIcon.DOWNLOAD.create());
+        exportCsvBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        exportCsvBtn.addClickListener(e ->
+            UI.getCurrent().getPage().open("/api/products/export/csv")
+        );
+
+        // Excel-vienti
+        Button exportXlsxBtn = new Button("Vie Excel", VaadinIcon.DOWNLOAD.create());
+        exportXlsxBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        exportXlsxBtn.addClickListener(e ->
+            UI.getCurrent().getPage().open("/api/products/export/xlsx")
+        );
+
+        // CSV-tuonti
+        // Tallennetaan UI-viite
+        UI currentUI = UI.getCurrent();
+
+        Upload upload = new Upload();
+        upload.setAcceptedFileTypes(".csv");
+        upload.setMaxFileSize(8 * 1024 * 1024); // 8Mt
+        upload.setUploadButton(new Button("Tuo CSV", VaadinIcon.UPLOAD.create()));
+        upload.setDropLabel(new Span("tai pudota CSV tähän"));
+
+        upload.setUploadHandler(UploadHandler.inMemory((event, bytes) -> {
+            try {
+                List<String> results = this.dataTransferService.importFromCSV(bytes);
+                long okCount = results.stream().filter(r -> r.contains("tuotu:")).count();
+                String message = results.size() + " rivi(ä) käsitelty, tuotu onnistuneesti: " + okCount;
+                currentUI.access(() -> {
+                    Notification.show(message, 3000, Position.BOTTOM_START);
+                    refreshGrid();
+                });
+            } catch (IOException ex) {
+                currentUI.access(() -> 
+                    Notification.show("CSV-tuonti epäonnistui: " + ex.getMessage(), 4000, Position.BOTTOM_END)
+                );
+            } catch (CsvException ex) {
+                currentUI.access(() -> 
+                    Notification.show("CSV-tiedoston käsittely epäonnistui: " + ex.getMessage(), 4000, Position.BOTTOM_END)
+                );
+            }
+        }));
+
+        HorizontalLayout toolbar = new HorizontalLayout(exportCsvBtn, exportXlsxBtn, upload);
+        toolbar.setAlignItems(Alignment.CENTER);
+        toolbar.setSpacing(true);
+        return toolbar;
     }
 
     private void createEditorLayout(SplitLayout splitLayout) {
@@ -183,7 +290,6 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
         unitPrice = new BigDecimalField("Yksikköhinta (€)");
         stockQuantity = new IntegerField("Määrä varastossa");
         category = new TextField("Kategoria");
-        description = new TextArea("Kuvaus");
         weight = new BigDecimalField("Paino (kg)");
         active = new Checkbox("Aktiivinen");
 
@@ -191,7 +297,13 @@ public class ProductInventoryView extends Div implements BeforeEnterObserver {
         supplierComboBox.setItems(this.supplierService.getAll());
         supplierComboBox.setItemLabelGenerator(Supplier::getName);
 
-        form.add(name, sku, category, unitPrice, stockQuantity, supplierComboBox, weight, description, active);
+        description = new QuillEditorField();
+        description.setLabel("Kuvaus");
+        description.setWidthFull();
+        description.setMinHeight("180px");
+
+        form.add(name, sku, category, unitPrice, stockQuantity, supplierComboBox, weight, active);
+        form.add(description, 2);
         innerDiv.add(form);
         editorDiv.add(innerDiv);
         createButtonLayout(editorDiv);

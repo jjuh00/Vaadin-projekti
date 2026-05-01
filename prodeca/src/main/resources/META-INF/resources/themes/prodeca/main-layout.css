@@ -71,7 +71,7 @@ vaadin-side-nav-item[active]::part(item) {
 
 .app-name {
   flex-shrink: 0;
-  padding: 0 var(--lumo-space-s)
+  padding: 0 var(--lumo-space-s);
 }
 
 .logout-button {

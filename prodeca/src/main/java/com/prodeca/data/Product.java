@@ -1,14 +1,27 @@
 package com.prodeca.data;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Entiteett 3: Tuote (Product)
+ * Entiteetti 3: Tuote (Product)
  * 
  * Tietokantasuhteet:
  * - N:1 suhde toimittajaan (Supplier)
@@ -43,7 +56,7 @@ public class Product extends AbstractEntity {
     @NotNull(message = "Tuotteen yksikköhinta on pakollinen tieto")
     @DecimalMin(value = "0.01", message = "Tuotteen yksikköhinnan pitää olla vähintään 0.01")
     @Digits(integer = 10, fraction = 2, message = "Tuotteen yksikköhinnan pitää olla muodossa x.xx")
-    @Column(nullable = false, precision = 12, scale = 12)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
 
     @NotNull(message = "Tuotteen varastomäärä on pakollinen tieto")

@@ -3,10 +3,11 @@ package com.prodeca.security;
 import com.prodeca.data.User;
 import com.prodeca.data.UserRepository;
 import com.vaadin.flow.spring.security.AuthenticationContext;
-import java.util.Optional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Component
 public class AuthenticatedUser {
@@ -28,5 +29,4 @@ public class AuthenticatedUser {
     public void logout() {
         authenticationContext.logout();
     }
-
 }

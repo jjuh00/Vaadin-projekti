@@ -25,14 +25,13 @@ public class SecurityConfiguration {
     // Määritellään SecurityFilterChain, joka määrittää sovelluksen turvallisuusasetukset
     @Bean
     public SecurityFilterChain vaadinSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(authentication -> authentication
+                .requestMatchers("/images/*.png", "/*.css").permitAll()
+                .requestMatchers("/line-awesome/**").permitAll()
+                .requestMatchers("/api/products/export/**").authenticated()
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+        );
 
-        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/images/*.png", "/*.css").permitAll());
-        http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/line-awesome/**").permitAll());
-        http.authorizeHttpRequests(authorize -> {
-            authorize.requestMatchers(PathRequest.toStaticResources()
-                .atCommonLocations())
-                .permitAll();
-        });
         http.with(vaadin(), vaadin -> {
             vaadin.loginView(LoginView.class);
         });

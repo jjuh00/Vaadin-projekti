@@ -1,7 +1,5 @@
 package com.prodeca.views.registration;
 
-import java.util.Set;
-
 import com.prodeca.data.Role;
 import com.prodeca.services.UserService;
 import com.vaadin.flow.component.button.Button;
@@ -17,6 +15,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+
+import java.util.Set;
 
 @PageTitle("Rekisteröidy")
 @Route(value = "register")
@@ -45,7 +45,7 @@ public class RegistrationView extends VerticalLayout {
         form.getStyle()
             .set("background", "var(--lumo-base-color)")
             .set("border-radius", "var(--lumo-border-radius-l)")
-            .set("box-shadow", "var(--lumo-box-shaodow-m)");
+            .set("box-shadow", "var(--lumo-box-shadow-m)");
 
         H2 title = new H2("Luo uusi tili");
 
@@ -112,18 +112,18 @@ public class RegistrationView extends VerticalLayout {
         try {
             this.service.registerUser(username, name, email, password, Set.of(Role.USER));
 
-            Notification ok = Notification.show("Rekisteröityminen onnistui! Sinut ohjataan kirjautumissivulle...", 3000, Notification.Position.MIDDLE);
+            Notification ok = Notification.show("Rekisteröityminen onnistui! Sinut ohjataan kirjautumissivulle...", 2000, Notification.Position.MIDDLE);
             ok.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-            // Ohjataan kirjautumissivulle 3 sekunnin kuluttua
+            // Ohjataan kirjautumissivulle 2 sekunnin kuluttua
             ok.addDetachListener(e -> getUI().ifPresent(ui -> ui.navigate("login")));
-        } catch (IllegalArgumentException ex) {
-            showError(ex.getMessage());
+        } catch (Exception ex) {
+            showError("Tarkista kentät, virhe käyttäjää luodessa: " + ex.getMessage());
         }
     }
 
     private void showError(String message) {
-        Notification error = Notification.show(message, 4000, Notification.Position.BOTTOM_CENTER);
+        Notification error = Notification.show(message, 4000, Notification.Position.BOTTOM_END);
         error.addThemeVariants(NotificationVariant.LUMO_ERROR);
     }
 }

@@ -19,12 +19,14 @@ import java.util.Optional;
 public class PurchaseOrderService {
     
     private final PurchaseOrderRepository repository;
+    private final AuditLogService auditLogService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public PurchaseOrderService(PurchaseOrderRepository repository) {
+    public PurchaseOrderService(PurchaseOrderRepository repository, AuditLogService auditLogService) {
         this.repository = repository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -42,46 +44,68 @@ public class PurchaseOrderService {
         return (int) this.repository.count();
     }
 
-    // Tallentaa tilauksen ja korvaa sen tilausrivit uusilla tuotteilla
+    // Tallennetaan tilaus ja korvataan sen tilausrivit uusilla tuotteilla sekä luodaan auditointiloki
     @Transactional
     public PurchaseOrder saveWithProducts(PurchaseOrder order, List<Product> selectedProducts) {
-        PurchaseOrder managedOrder = this.repository.findById(order.getId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                    "Tilausta ei löydy ID:llä " + order.getId()
-                ));
+        boolean isNew = order.getId() == null;
 
-        // Kopioidaan binderissä olevat kentät irrotetusta oliosta managed-olioon
-        managedOrder.setOrderNumber(order.getOrderNumber());
-        managedOrder.setOrderDate(order.getOrderDate());
-        managedOrder.setStatus(order.getStatus());
-        managedOrder.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
-        managedOrder.setNotes(order.getNotes());
+        PurchaseOrder target;
 
-        // Siivotaan vanhat tilausrivit
-        managedOrder.getOrderItems().clear();
+        if (isNew) {
+            // Uusi tilaus, luodaan uusi entiteetti
+            target = order;
+        } else {
+            // Haetaan hallittu tilausentiteetti, että JPA voi seurata orderItems-kokoelman muutoksia
+            target = this.repository.findById(order.getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                        "Tilausta ei löytynyt ID:llä: " + order.getId()
+                    ));
 
-        // Pakotetaan Hibernate päivittämään tietokanta ennen uusien tilausrivien lisäämistä
-        entityManager.flush();
+            // Kopioidaan tilauksen perusominaisuudet hallittuun entiteettiin
+            target.setOrderNumber(order.getOrderNumber());
+            target.setOrderDate(order.getOrderDate());
+            target.setStatus(order.getStatus());
+            target.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+            target.setNotes(order.getNotes());
 
-        // Luodaan uudet tilausrivit jokaiselle valitulle tuotteelle
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        for (Product p : selectedProducts) {
-            PurchaseOrderItem item = new PurchaseOrderItem();
-            item.setPurchaseOrder(managedOrder);
-            item.setProduct(p);
-            item.setQuantity(1); // Oletus 1
-            item.setUnitPrice(p.getUnitPrice());
-            managedOrder.getOrderItems().add(item);
-            totalPrice = totalPrice.add(item.getUnitPrice());
+            // Poistetaan vanhat tilausrivit
+            target.getOrderItems().clear();
+            entityManager.flush();
         }
 
-        managedOrder.setTotalAmount(totalPrice);
+        // Lisätään uudet tilausrivit valittujen tuotteiden perusteella
+        BigDecimal total = BigDecimal.ZERO;
+        for (Product product : selectedProducts) {
+            PurchaseOrderItem item = new PurchaseOrderItem();
+            item.setPurchaseOrder(target);
+            item.setProduct(product);
+            item.setQuantity(1); // Oletus 1
+            item.setUnitPrice(product.getUnitPrice());
+            target.getOrderItems().add(item);
+            total = total.add(product.getUnitPrice());
+        }
+        target.setTotalAmount(total);
 
-        return this.repository.save(managedOrder);
+        PurchaseOrder saved = this.repository.save(target);
+
+        String details = "Tilausnumero: " + saved.getOrderNumber() + ", Tila: " + saved.getStatus() +
+                         ", Tuotteet: " + saved.getProductSummary() + ", Hinta: " + saved.getTotalAmount();
+
+        if (isNew) {
+            this.auditLogService.logCreate("PurchaseOrder", saved.getId(), saved.getOrderNumber(), details);
+        } else {
+            this.auditLogService.logUpdate("PurchaseOrder", saved.getId(), saved.getOrderNumber(), details);
+        }
+
+        return saved;
     }
 
+    // Poistetaan tilaus ja luodaan auditointiloki
     @Transactional
     public void delete(Long id) {
+        this.repository.findById(id).ifPresent(po ->
+            this.auditLogService.logDelete("PurchaseOrder", id, po.getOrderNumber())
+        );
         this.repository.deleteById(id);
     }
 }

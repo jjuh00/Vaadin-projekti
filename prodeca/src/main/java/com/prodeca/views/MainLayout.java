@@ -10,7 +10,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Footer;
-import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -19,8 +18,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.router.AfterNavigationEvent;
-import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
@@ -35,9 +32,7 @@ import java.util.Optional;
  */
 @Layout
 @AnonymousAllowed
-public class MainLayout extends AppLayout implements AfterNavigationObserver {
-
-    private H1 viewTitle;
+public class MainLayout extends AppLayout {
 
     private final AuthenticatedUser authenticatedUser;
 
@@ -50,34 +45,30 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     }
 
     private void addHeaderContent() {
-        // Drawer toggle
+        // Drawerin toggle
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Avaa/sulje navigaatio");
 
-        // Sovelluksen nimi headerin vasemmassa reunassa
+        // Sovelluksen nimi headeriin vasemmalle
         Span appName = new Span("Prodeca");
         appName.addClassNames(
-            "app-name", LumoUtility.TextColor.PRIMARY,
-            LumoUtility.FontSize.MEDIUM, LumoUtility.FontWeight.BOLD
+                "app-name", LumoUtility.TextColor.PRIMARY,
+                LumoUtility.FontSize.MEDIUM, LumoUtility.FontWeight.BOLD
         );
-
-        // Nykyisen sivun otsikko
-        viewTitle = new H1();
-        viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
         // Käyttäjäosuus headerin oikeassa reunassa
         HorizontalLayout userSection = buildUserSection();
 
-        addToNavbar(true, toggle, appName, viewTitle, userSection);
+        addToNavbar(true, toggle, appName, userSection);
     }
 
-    // Funktio, joka rakentaa headerin oikeaan reunaan käyttäjäosion, 
+    // Funktio, joka rakentaa headerin oikeaan reunaan käyttäjäosion,
     // jossa on avatar, nimi ja kirjaudu ulos -nappi
     private HorizontalLayout buildUserSection() {
         HorizontalLayout userSection = new HorizontalLayout();
         userSection.addClassNames(
-            "header-user-section", LumoUtility.Margin.Left.AUTO,
-            LumoUtility.Gap.SMALL, LumoUtility.AlignItems.CENTER
+                "header-user-section", LumoUtility.Margin.Left.AUTO,
+                LumoUtility.Gap.SMALL, LumoUtility.AlignItems.CENTER
         );
         userSection.setPadding(true);
 
@@ -97,9 +88,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
             // Käyttäjän nimi
             Span userName = new Span(user.getName());
             userName.addClassNames(
-                LumoUtility.TextColor.SECONDARY,
-                LumoUtility.FontSize.SMALL,
-                LumoUtility.FontWeight.MEDIUM
+                    LumoUtility.TextColor.SECONDARY,
+                    LumoUtility.FontSize.SMALL,
+                    LumoUtility.FontWeight.MEDIUM
             );
 
             Button logoutBtn = new Button("Kirjaudu ulos");
@@ -126,9 +117,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         // Drawerin otsikko
         Span drawerTitle = new Span("Prodeca");
         drawerTitle.addClassNames(
-            "drawer-title",
-            LumoUtility.FontSize.XLARGE,
-            LumoUtility.FontWeight.BOLD
+                "drawer-title",
+                LumoUtility.FontSize.XLARGE,
+                LumoUtility.FontWeight.BOLD
         );
         Header drawerHeader = new Header(drawerTitle);
         drawerHeader.addClassName("drawer-header");
@@ -170,17 +161,17 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         // Copyright-teksti
         Paragraph copyright = new Paragraph("© 2026 Prodeca");
         copyright.addClassNames(
-            LumoUtility.Margin.NONE,
-            LumoUtility.TextColor.SECONDARY,
-            LumoUtility.FontSize.XSMALL
+                LumoUtility.Margin.NONE,
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.FontSize.XSMALL
         );
 
         // Tekijä tieto
         Paragraph author = new Paragraph("Tekijä: Juho Jämsén");
         author.addClassNames(
-            LumoUtility.Margin.NONE,
-            LumoUtility.TextColor.SECONDARY,
-            LumoUtility.FontSize.XSMALL
+                LumoUtility.Margin.NONE,
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.FontSize.XSMALL
         );
 
         // Linkkipalkki
@@ -194,19 +185,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         Anchor githubLink = new Anchor("https://github.com/jjuh00", "GitHub");
         githubLink.addClassNames("footer-link", LumoUtility.TextColor.PRIMARY, LumoUtility.FontSize.XSMALL);
         githubLink.setTarget("_blank");
-        
+
         linkRow.add(docsLink, githubLink);
 
         footer.add(copyright, author, linkRow);
         return footer;
-    }
-
-    @Override
-    public void afterNavigation(AfterNavigationEvent event) {
-        viewTitle.setText(getCurrentPageTitle());
-    }
-
-    private String getCurrentPageTitle() {
-        return MenuConfiguration.getPageHeader(getContent()).orElse("");
     }
 }

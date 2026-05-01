@@ -34,9 +34,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-import jakarta.annotation.security.RolesAllowed;
 
 import java.util.Optional;
 
@@ -131,7 +131,7 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
                 Notification n = Notification.show(
                     "Yhtäaikainen muokkausvirhe: joku muu on muokannut tämän toimittajan tietoja. Lataa tiedot uudestaan ja yritä uudestaan"
                 );
-                n.setPosition(Position.MIDDLE);
+                n.setPosition(Position.BOTTOM_END);
                 n.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 ex.printStackTrace();
             } catch (ValidationException ex) {
@@ -158,11 +158,12 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
         Div banner = new Div();
         banner.addClassName("context-banner");
 
-        banner.getStyle().set("margin-bottom", "var(--lumo-space-m)");
-        banner.getStyle().set("padding", "var(--lumo-space-m)");
-        banner.getStyle().set("background", "var(--lumo-primary-color-10pct)");
-        banner.getStyle().set("border-left", "4px solid var(--lumo-primary-color)");
-        banner.getStyle().set("border-radius", "var(--lumo-border-radius-s)");
+        banner.getStyle()
+              .set("margin-bottom", "var(--lumo-space-m)")
+              .set("padding", "var(--lumo-space-m)")
+              .set("background", "var(--lumo-primary-color-10pct)")
+              .set("border-left", "4px solid var(--lumo-primary-color)")
+              .set("border-radius", "var(--lumo-border-radius-s)");
 
         H3 bannerTitle = new H3("Toimittajien yhteyshenkilöt");
         bannerTitle.addClassNames(LumoUtility.Margin.NONE, LumoUtility.FontSize.MEDIUM);
@@ -198,7 +199,7 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
                     deleteBtn.setVisible(true);
                 },
                 () -> {
-                    Notification.show("Yhteystietoja ei löytynyt, ID: " + contactId.get(), 3000, Notification.Position.BOTTOM_START);
+                    Notification.show("Yhteystietoja ei löytynyt, ID: " + contactId.get(), 3000, Notification.Position.BOTTOM_END);
                     refreshGrid();
                     event.forwardTo(SupplierContactView.class);
                 }

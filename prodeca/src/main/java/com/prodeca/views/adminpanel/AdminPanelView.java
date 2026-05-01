@@ -27,9 +27,9 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.Pageable;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-import jakarta.annotation.security.RolesAllowed;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -176,7 +176,7 @@ public class AdminPanelView extends VerticalLayout {
                     Notification.show("Käyttäjä poistettu onnistuneesti", 3000, Notification.Position.BOTTOM_START);
                     refreshGrid();
                 },
-                "Perruta", cancelEvent -> {}
+                "Peruuta", cancelEvent -> {}
             );
             dialog.setConfirmButtonTheme("error primary");
             dialog.open();
@@ -220,14 +220,28 @@ public class AdminPanelView extends VerticalLayout {
         userGrid.asSingleSelect().addValueChangeListener(e -> {
             selectedUser = e.getValue();
             boolean hasSelection = selectedUser != null;
-            changeRoleBtn.setEnabled(hasSelection);
-            deleteBtn.setEnabled(hasSelection);
-            if (hasSelection && selectedUser.getRoles() != null
-                && !selectedUser.getRoles().isEmpty()) {
-                    // Esikäytetään roolivalikko nykyisellä roolilla
-                    roleSelect.setValue(selectedUser.getRoles().iterator().next());
+
+            // Admin ei voi muuttaa oman roolinsa tai muiden adminien rooleja
+            boolean selectedIsAdmin = hasSelection
+                && selectedUser.getRoles() != null
+                && selectedUser.getRoles().contains(Role.ADMIN);
+
+            // Napit ovat käytössä, jos käyttäjä on valittuna, mutta admin ei voi muuttaa omaa tai muiden adminien rooleja
+            changeRoleBtn.setEnabled(hasSelection && !selectedIsAdmin);
+            deleteBtn.setEnabled(hasSelection && !selectedIsAdmin);
+
+            if (selectedIsAdmin) {
+                Notification n = Notification.show(
+                    "HUOM! Et voi muokata ylläpitäjien käyttäjätietoja",
+                    3000, Notification.Position.BOTTOM_END
+                );
+                n.addThemeVariants(NotificationVariant.LUMO_WARNING);
+            }
+
+            if (hasSelection && selectedUser.getRoles() != null && !selectedUser.getRoles().isEmpty()) {
+                roleSelect.setValue(selectedUser.getRoles().iterator().next());
             } else {
-                roleSelect.clear();   
+                roleSelect.clear();
             }
         });
 

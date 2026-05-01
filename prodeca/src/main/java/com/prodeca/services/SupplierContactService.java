@@ -29,24 +29,12 @@ public class SupplierContactService {
         return this.repository.findAll(pageable);
     }
 
-    // Sivutettu lista valinnaisella Specifition-parametrillä Criteria API-suodatusta varten
-    @Transactional(readOnly = true)
-    public Page<SupplierContact> getWithSpec(Pageable pageable, org.springframework.data.jpa.domain.Specification<SupplierContact> filter) {
-        return this.repository.findAll(filter, pageable);
-    }
-
     @Transactional(readOnly = true)
     public int count() {
         return (int) this.repository.count();
     }
 
-    // Palauttaa ture, jos annettulla toimittajallla on jo yhteystiedot, muuten false
-    @Transactional(readOnly = true)
-    public boolean supplierHasContactInfo(Supplier supplier) {
-        return this.repository.existsBySupplier(supplier);
-    }
-
-    // Palauttaa toimittajaan liitetyn yhteyshenkilön koko nimen tai tyhjän merkkijonon,
+    // Palautetaan toimittajaan liitetyn yhteyshenkilön koko nimi tai tyhjä merkkijono,
     // jos yhteystietoja ei löydy
     @Transactional(readOnly = true)
     public String getContactFullName(Supplier supplier) {
@@ -54,7 +42,7 @@ public class SupplierContactService {
         return contact.isPresent() ? contact.get().getFullName() : "";
     }
 
-    // Palauttaa toimittajan yhteyshenkilön (Optional-wrapperissa)
+    // Palautetaan toimittajan yhteyshenkilö
     @Transactional(readOnly = true)
     public Optional<SupplierContact> getBySupplier(Supplier supplier) {
         return this.repository.findBySupplier(supplier);

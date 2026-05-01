@@ -23,8 +23,8 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 import java.math.BigDecimal;
 
@@ -106,8 +106,8 @@ public class AdvancedSearchView extends VerticalLayout {
         fin.setDateFormat("dd.MM.yyyy");
         orderDateFrom.setI18n(fin);
         orderDateTo.setI18n(fin);
-        orderDateFrom.setPlaceholder("pp.kk.vvvvv");
-        orderDateTo.setPlaceholder("pp.kk.vvvvv");
+        orderDateFrom.setPlaceholder("pp.kk.vvvv");
+        orderDateTo.setPlaceholder("pp.kk.vvvv");
 
         // Hakunappi
         Button searchBtn = new Button("Hae", VaadinIcon.SEARCH.create());
@@ -213,10 +213,15 @@ public class AdvancedSearchView extends VerticalLayout {
             activeFilter.getOrderDateTo() != null &&
             activeFilter.getOrderDateFrom().isAfter(activeFilter.getOrderDateTo())) {
 
-            Notification.show("Tilauspäivän alku ei voi olla myöhempi kuin loppupäivä", 3000, Notification.Position.MIDDLE);
+            Notification.show("Tilauspäivän alku ei voi olla myöhempi kuin loppupäivä", 3000, Notification.Position.BOTTOM_END);
             return;
         }
 
+        if (!activeFilter.hasAnyFilter()) {
+            Notification.show("Syötä vähintään yksi hakuehto", 3000, Notification.Position.BOTTOM_END);
+            return;
+        }
+        
         refreshGrid();
     }
 

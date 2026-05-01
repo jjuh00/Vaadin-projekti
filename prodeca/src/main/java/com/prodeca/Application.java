@@ -4,6 +4,9 @@ import com.prodeca.data.Role;
 import com.prodeca.services.UserService;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.shared.communication.PushMode;
+import com.vaadin.flow.shared.ui.Transport;
 import com.vaadin.flow.theme.lumo.Lumo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,14 +16,21 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.sql.autoconfigure.init.SqlInitializationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.util.Set;
 
+@EnableAsync
+@Push(value = PushMode.AUTOMATIC, transport = Transport.WEBSOCKET_XHR)
 @SpringBootApplication
 @StyleSheet(Lumo.STYLESHEET)
 @StyleSheet(Lumo.UTILITY_STYLESHEET)
 @StyleSheet("themes/prodeca/styles.css")
 @EnableConfigurationProperties(SqlInitializationProperties.class)
+@EnableJpaAuditing
+@EnableJpaRepositories
 public class Application implements AppShellConfigurator {
 
     private static final Logger log = LoggerFactory.getLogger(Application.class);

@@ -1,5 +1,5 @@
 services:
-  # PostegreSQL-tietokanta
+  # PostgreSQL-tietokanta
   db:
     image: postgres:17-alpine
     container_name: prodeca_postgres
@@ -18,28 +18,21 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Vaadin + Spring Boot -sovellus (kehitysvaihetta varten)
+  # Vaadin + Spring Boot -sovellus
   app:
     build:
-      context: . # Sama hakemisto kuin missä on Dockerfile & pom.xml
-      target: dev
+      context: . # Sama hakemisto kuin missä sijaitsee Dockerfile ja pom.xml
+      target: production
     container_name: prodeca_app
     ports:
-      - "8080:8080" # Sovelluksen portti
-      - "9090:9090" # Vaadin devtools
-    volumes:
-      - .:/app
-      # Tallennetaan Mavenin lataamat riippuvuudet, jotta ne säilyvät konttien välillä
-      - maven_cache:/root/.m2
-      # Tallennetaan Vaatimen Node.js riippuvuudet, jotta ne säilyvät konttien välillä
-      - vaadin_cache:/root/.vaadin
+      - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/prodeca
       SPRING_DATASOURCE_USERNAME: pr0decAU54R
       SPRING_DATASOURCE_PASSWORD: 6n!<kWBOOZe1Uwjrh
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       VAADIN_LAUNCH_BROWSER: "false"
-      
+
     depends_on:
       db:
         condition: service_healthy
@@ -47,5 +40,3 @@ services:
 
 volumes:
   postgres_data:
-  maven_cache:
-  vaadin_cache:

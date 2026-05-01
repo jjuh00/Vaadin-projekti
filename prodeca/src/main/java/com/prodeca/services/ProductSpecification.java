@@ -15,7 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.ArrayList;
 import java.util.List;
 
-// Luokka, joka muodostaa dynaamisen JPA Criterua API-kyselypredikaatin ProductSearchFilter-olion pohjalta
+// Luokka, joka muodostaa dynaamisen JPA Criteria API-kyselypredikaatin ProductSearchFilter-olion pohjalta
 public class ProductSpecification {
     // Funktio, joka muodostaa Specification<Product>-olion filterin perusteella
     public static Specification<Product> build(ProductSearchFilter filter) {

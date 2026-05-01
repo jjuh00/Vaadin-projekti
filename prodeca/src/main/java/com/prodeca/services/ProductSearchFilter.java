@@ -7,6 +7,7 @@ import java.time.LocalDate;
  * DTO-luokka, joka pitää sisällään käyttäjän syöttämät hakukriteerit. Välitetään ProductSpecification-luokalle Criteria API-
  * kyselyä varten. Sisältää useita hakukenttiä, päivämäärähaun ja toimittajan nimen haun
  */
+
 public class ProductSearchFilter {
     
     private String nameOrSku; // Hakuteksti tuotenimelle TAI tuotekoodille

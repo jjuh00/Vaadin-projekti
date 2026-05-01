@@ -14,4 +14,7 @@ public interface SupplierRepository extends
 
     // Käytetään sähköpostiosoitteiden uniikkiuden varmistamiseen service-kerroksessa
     Optional<Supplier> findByEmail(String email);
+
+    // Käytetään toimittajan nimen hakemiseen
+    Optional<Supplier> findByNameIgnoreCase(String name);
 }

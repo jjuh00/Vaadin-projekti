@@ -16,9 +16,13 @@ import java.util.Optional;
 public class ProductService {
  
     private final ProductRepository repository;
+    private final AuditLogService auditLogService;
+    private final InventoryBroadcaster broadcaster;
 
-    public ProductService(ProductRepository repository) {
+    public ProductService(ProductRepository repository, AuditLogService auditLogService, InventoryBroadcaster broadcaster) {
         this.repository = repository;
+        this.auditLogService = auditLogService;
+        this.broadcaster = broadcaster;
     }
 
     @Transactional(readOnly = true)
@@ -26,7 +30,7 @@ public class ProductService {
         return this.repository.findById(id);
     }
 
-    // Hakee kaikki aktiiviset tuottet (käytetään M:N valitsijan listaukseen tilauslomakkeella)
+    // Haetaan kaikki aktiiviset tuottet (käytetään M:N valitsijan listaukseen tilauslomakkeella)
     @Transactional(readOnly = true)
     public List<Product> getActive() {
         return this.repository.findByActiveTrue();
@@ -55,13 +59,32 @@ public class ProductService {
         return (int) this.repository.count();
     }
 
+    // Tallennetaan tuote ja luodaan auditointiloki
     @Transactional
     public Product save(Product product) {
-        return this.repository.save(product);
+        boolean isNew = product.getId() == null;
+        Product saved = this.repository.save(product);
+        String details = "SKU: " + saved.getSku() + ", Hinta: " + saved.getUnitPrice() +
+                         ", Varastossa: " + saved.getStockQuantity();
+        
+        if (isNew) {
+            this.auditLogService.logCreate("Product", saved.getId(), saved.getName(), details);
+            this.broadcaster.broadcast(saved.getName() + " luotu");
+        } else {
+            this.auditLogService.logUpdate("Product", saved.getId(), saved.getName(), details);
+            this.broadcaster.broadcast(saved.getName() + " päivitetty");
+        }
+
+        return saved;
     }
 
+    // Poistetaan tuote ja luodaan auditointiloki
     @Transactional
     public void delete(Long id) {
+        this.repository.findById(id).ifPresent(p -> {
+            this.auditLogService.logDelete("Product", id, p.getName());
+            this.broadcaster.broadcast(p.getName() + " poistettu");
+        });
         this.repository.deleteById(id);
     }
 }
