@@ -169,7 +169,7 @@ public class SupplierContactView extends Div implements BeforeEnterObserver {
         bannerTitle.addClassNames(LumoUtility.Margin.NONE, LumoUtility.FontSize.MEDIUM);
 
         Paragraph bannerDesc = new Paragraph(
-            "Tässä näkymässä voit hallinnoida toimittajiin liittyviä yhteyshenkiöitä. " +
+            "Tässä näkymässä voit hallinnoida toimittajiin liittyviä yhteyshenkilöitä. " +
             "Jokaisella toimittajalla voi olla yksi yhteyshenkilö. " +
             "Toimittajan perusteidot (nimi, puhelin, maa, rekisteröintinumero jne.) " +
             "hallinnoidaan erikseen Toimittajat-näkymässä"
