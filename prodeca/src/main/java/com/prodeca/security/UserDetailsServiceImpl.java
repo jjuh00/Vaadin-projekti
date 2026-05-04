@@ -1,8 +1,7 @@
 package com.prodeca.security;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.prodeca.data.User;
+import com.prodeca.data.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,8 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.prodeca.data.User;
-import com.prodeca.data.UserRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
