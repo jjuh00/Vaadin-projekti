@@ -2,7 +2,6 @@ package com.prodeca.services;
 
 import com.prodeca.data.Product;
 import com.prodeca.data.ProductRepository;
-import com.prodeca.data.Supplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,11 +33,6 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<Product> getActive() {
         return this.repository.findByActiveTrue();
-    }
-
-    @Transactional(readOnly = true)
-    public List<Product> getBySupplier(Supplier supplier) {
-        return this.repository.findBySupplier(supplier);
     }
 
     @Transactional(readOnly = true)
